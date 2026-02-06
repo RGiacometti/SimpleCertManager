@@ -23,7 +23,7 @@ const CertificateList = ({
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
 
-  const filteredCertificates = certificates.filter((cert) => {
+  const filteredCertificates = (certificates || []).filter((cert) => {
     const matchesSearch =
       cert.common_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       cert.serial_number.toLowerCase().includes(searchTerm.toLowerCase());

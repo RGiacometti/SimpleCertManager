@@ -11,9 +11,10 @@ const useCertificates = () => {
     setError(null);
     try {
       const response = await api.get('/certificates');
-      setCertificates(response.data);
+      setCertificates(response.data?.data || response.data || []);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to fetch certificates');
+      setCertificates([]);
     } finally {
       setLoading(false);
     }
