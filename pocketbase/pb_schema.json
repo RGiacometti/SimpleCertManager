@@ -184,8 +184,8 @@
     "listRule": "@request.auth.id != ''",
     "viewRule": "@request.auth.id != ''",
     "createRule": "@request.auth.id != ''",
-    "updateRule": "@request.auth.id != '' && status = 'pending'",
-    "deleteRule": "@request.auth.id != '' && status = 'pending'",
+    "updateRule": "@request.auth.id != ''",
+    "deleteRule": "@request.auth.id != ''",
     "options": {}
   },
   {
