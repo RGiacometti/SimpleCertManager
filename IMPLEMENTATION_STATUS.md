@@ -61,32 +61,32 @@ This document tracks the implementation progress of the SimpleCertManager applic
 
 ---
 
-## Phase 2: Backend Core 🔄 IN PROGRESS
+## Phase 2: Backend Core ✅ COMPLETED
 
-### 2.1 Services Backend ⏳ TODO
-- [ ] [`backend/src/utils/crypto.js`](backend/src/utils/crypto.js) - Cryptographic utilities
-- [ ] [`backend/src/utils/fileManager.js`](backend/src/utils/fileManager.js) - File management
-- [ ] [`backend/src/services/caService.js`](backend/src/services/caService.js) - CA management with node-forge
-- [ ] [`backend/src/services/certificateService.js`](backend/src/services/certificateService.js) - Certificate operations
-- [ ] [`backend/src/services/crlService.js`](backend/src/services/crlService.js) - CRL management
-- [ ] [`backend/src/services/auditService.js`](backend/src/services/auditService.js) - Audit logging
-- [ ] [`backend/src/services/reportService.js`](backend/src/services/reportService.js) - Report generation
+### 2.1 Services Backend ✅
+- [x] [`backend/src/utils/crypto.js`](backend/src/utils/crypto.js) - Cryptographic utilities with node-forge
+- [x] [`backend/src/utils/fileManager.js`](backend/src/utils/fileManager.js) - File management for certificates
+- [x] [`backend/src/utils/validators.js`](backend/src/utils/validators.js) - Joi validation schemas
+- [x] [`backend/src/services/caService.js`](backend/src/services/caService.js) - CA management with node-forge
+- [x] [`backend/src/services/certificateService.js`](backend/src/services/certificateService.js) - Certificate operations
+- [x] [`backend/src/services/crlService.js`](backend/src/services/crlService.js) - CRL management
+- [x] [`backend/src/services/auditService.js`](backend/src/services/auditService.js) - Audit logging
+- [x] [`backend/src/services/reportService.js`](backend/src/services/reportService.js) - Report generation
 
-### 2.2 Routes API REST ⏳ TODO
-- [ ] [`backend/src/routes/auth.js`](backend/src/routes/auth.js) - Authentication routes
-- [ ] [`backend/src/routes/requests.js`](backend/src/routes/requests.js) - Certificate request routes
-- [ ] [`backend/src/routes/certificates.js`](backend/src/routes/certificates.js) - Certificate routes
-- [ ] [`backend/src/routes/ca.js`](backend/src/routes/ca.js) - CA configuration routes
-- [ ] [`backend/src/routes/reports.js`](backend/src/routes/reports.js) - Report routes
-- [ ] [`backend/src/routes/audit.js`](backend/src/routes/audit.js) - Audit routes
-- [ ] Update [`backend/src/app.js`](backend/src/app.js) to register routes
+### 2.2 Routes API REST ✅
+- [x] [`backend/src/routes/auth.js`](backend/src/routes/auth.js) - Authentication routes
+- [x] [`backend/src/routes/requests.js`](backend/src/routes/requests.js) - Certificate request routes
+- [x] [`backend/src/routes/certificates.js`](backend/src/routes/certificates.js) - Certificate routes
+- [x] [`backend/src/routes/ca.js`](backend/src/routes/ca.js) - CA configuration routes
+- [x] [`backend/src/routes/reports.js`](backend/src/routes/reports.js) - Report routes
+- [x] [`backend/src/routes/audit.js`](backend/src/routes/audit.js) - Audit routes
+- [x] Updated [`backend/src/app.js`](backend/src/app.js) to register all routes
 
-### Git Commits (Planned)
-- [ ] `feat: implement CA service with node-forge`
-- [ ] `feat: implement certificate service`
-- [ ] `feat: implement CRL service`
-- [ ] `feat: implement audit and report services`
-- [ ] `feat: create API routes`
+### Git Commits
+- ✅ `feat: implement backend utilities (crypto, fileManager, validators)`
+- ✅ `feat: implement backend services (audit, CA, certificate, CRL, report)`
+- ✅ `feat: implement API routes (auth, requests, certificates, CA, reports, audit)`
+- ✅ `feat: integrate all API routes into app.js with health check`
 
 ---
 
@@ -168,37 +168,100 @@ This document tracks the implementation progress of the SimpleCertManager applic
 - [x] CA passphrase NEVER stored in environment variables
 - [x] CA passphrase NEVER stored in database
 - [x] CA passphrase NEVER logged
-- [ ] CA passphrase cleared from memory after use
-- [ ] Private keys stored with restricted permissions (chmod 600)
-- [ ] All certificate operations require passphrase input
-- [ ] HTTPS enforced in production
-- [ ] Rate limiting configured
-- [ ] Input validation with Joi
-- [ ] Audit logging for all operations
-- [ ] Authentication required for all API endpoints
+- [x] CA passphrase cleared from memory after use (clearSensitiveData utility)
+- [x] Private keys stored with restricted permissions (chmod 600)
+- [x] All certificate operations require passphrase input
+- [x] HTTPS enforced in production (via Nginx in Docker)
+- [x] Rate limiting configured (express-rate-limit)
+- [x] Input validation with Joi
+- [x] Audit logging for all operations
+- [x] Authentication required for all API endpoints (except public CA cert/CRL)
 
 ---
 
 ## Next Steps
 
-1. **Immediate**: Implement backend services (Phase 2.1)
-   - Start with [`caService.js`](backend/src/services/caService.js) using node-forge
-   - Implement certificate generation and signing
-   - Ensure secure passphrase handling
-
-2. **Then**: Create API routes (Phase 2.2)
-   - Implement all REST endpoints
-   - Add proper validation and error handling
-
-3. **After**: Build frontend UI (Phase 3)
-   - Create layout and navigation
+1. **Immediate**: Build frontend UI (Phase 3)
+   - Create layout and navigation components
    - Implement certificate management pages
    - Add CA initialization wizard
+   - Build request management interface
 
-4. **Finally**: Deploy and test (Phases 4-5)
+2. **Then**: Advanced features (Phase 4)
+   - Complete CRL management UI
+   - Implement reporting system UI
+   - Add audit log visualization
+
+3. **Finally**: Deploy and test (Phase 5)
    - Set up CI/CD pipelines
    - Complete documentation
    - Perform security audit
+   - End-to-end testing
+
+---
+
+## API Endpoints Implemented
+
+### Authentication (`/api/auth`)
+- POST `/login` - User login
+- POST `/logout` - User logout
+- GET `/me` - Get current user
+- POST `/refresh` - Refresh token
+- GET `/verify` - Verify token
+
+### Certificate Requests (`/api/requests`)
+- GET `/` - List all requests
+- GET `/:id` - Get request details
+- POST `/` - Create new request
+- PUT `/:id` - Update request
+- DELETE `/:id` - Delete request
+- POST `/:id/approve` - Approve request
+- POST `/:id/reject` - Reject request
+- GET `/stats/summary` - Request statistics
+
+### Certificates (`/api/certificates`)
+- GET `/` - List all certificates
+- GET `/expiring` - Get expiring certificates
+- GET `/stats` - Certificate statistics
+- GET `/:id` - Get certificate details
+- POST `/issue/:requestId` - Issue certificate
+- POST `/:id/revoke` - Revoke certificate
+- POST `/:id/renew` - Renew certificate
+- GET `/:id/download` - Download certificate
+- GET `/:id/download-key` - Download private key
+- GET `/:id/download-bundle` - Download bundle (ZIP)
+
+### CA Management (`/api/ca`)
+- GET `/status` - CA status
+- GET `/config` - CA configuration
+- POST `/initialize` - Initialize CA
+- PUT `/config` - Update configuration
+- GET `/certificate` - Download CA certificate (public)
+- GET `/crl` - Download CRL (public)
+- GET `/crl/info` - CRL information
+- POST `/crl/regenerate` - Regenerate CRL
+- POST `/verify-passphrase` - Verify passphrase
+- GET `/initialized` - Check if initialized (public)
+
+### Reports (`/api/reports`)
+- GET `/` - List all reports
+- GET `/stats` - Report statistics
+- GET `/:id` - Get report details
+- POST `/generate` - Generate custom report
+- POST `/generate/monthly` - Generate monthly report
+- POST `/generate/quarterly` - Generate quarterly report
+- POST `/generate/annual` - Generate annual report
+- GET `/:id/download` - Download report (JSON)
+- DELETE `/:id` - Delete report
+
+### Audit Logs (`/api/audit`)
+- GET `/logs` - List audit logs with filters
+- GET `/logs/recent` - Recent audit logs
+- GET `/logs/:id` - Get log details
+- GET `/entity/:entityType/:entityId` - Entity audit logs
+- GET `/statistics` - Audit statistics
+- GET `/actions` - Available actions
+- GET `/entity-types` - Available entity types
 
 ---
 
@@ -209,9 +272,10 @@ This document tracks the implementation progress of the SimpleCertManager applic
 - Test each feature before committing
 - Keep security as top priority, especially passphrase handling
 - Document any deviations from the original plan
+- Backend API is fully functional and ready for frontend integration
 
 ---
 
 **Last Updated**: 2026-02-06
-**Current Phase**: Phase 2 - Backend Core
-**Overall Progress**: ~30% (Phase 1 complete)
+**Current Phase**: Phase 3 - Frontend Core (Ready to start)
+**Overall Progress**: ~55% (Phases 1-2 complete)
