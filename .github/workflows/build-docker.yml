@@ -2,11 +2,8 @@ name: Build and Publish Docker Images
 
 on:
   push:
-    branches:
-      - main
     tags:
       - 'v*.*.*'
-  workflow_dispatch:
 
 env:
   REGISTRY: ghcr.io
@@ -38,11 +35,8 @@ jobs:
       - name: Extract version from tag
         id: version
         run: |
-          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
-            VERSION=${GITHUB_REF#refs/tags/v}
-          else
-            VERSION=latest
-          fi
+          # Remove 'v' prefix from tag (e.g., v1.2.3 -> 1.2.3)
+          VERSION=${GITHUB_REF#refs/tags/v}
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "📦 Building version: $VERSION"
 

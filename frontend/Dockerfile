@@ -18,7 +18,8 @@ ARG REACT_APP_POCKETBASE_URL
 ENV REACT_APP_API_URL=$REACT_APP_API_URL
 ENV REACT_APP_POCKETBASE_URL=$REACT_APP_POCKETBASE_URL
 
-# Build the application
+# Build the application (increase memory for multi-platform builds)
+ENV NODE_OPTIONS=--max_old_space_size=4096
 RUN npm run build
 
 # Production stage with Nginx
@@ -29,10 +30,6 @@ COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 # Copy built files
 COPY --from=builder /app/build /usr/share/nginx/html
-
-# Create non-root user
-RUN addgroup -g 1001 -S nginx && \
-    adduser -S nginx -u 1001 -G nginx
 
 EXPOSE 80
 
