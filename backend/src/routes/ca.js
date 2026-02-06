@@ -45,7 +45,8 @@ router.get('/config', authenticate, async (req, res, next) => {
     
     res.json({
       success: true,
-      data: config
+      data: config,
+      initialized: config !== null
     });
   } catch (error) {
     next(error);

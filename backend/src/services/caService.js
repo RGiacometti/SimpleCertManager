@@ -213,7 +213,7 @@ async function getCAConfig() {
     const configs = await pb.collection('ca_config').getFullList();
     
     if (configs.length === 0) {
-      throw new Error('CA not initialized');
+      return null; // CA not initialized yet
     }
     
     const config = configs[0];
