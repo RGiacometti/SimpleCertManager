@@ -180,11 +180,7 @@
         }
       }
     ],
-    "indexes": [
-      "CREATE INDEX idx_status ON certificate_requests (status)",
-      "CREATE INDEX idx_requested_by ON certificate_requests (requested_by)",
-      "CREATE INDEX idx_requested_at ON certificate_requests (requested_at)"
-    ],
+    "indexes": [],
     "listRule": "@request.auth.id != ''",
     "viewRule": "@request.auth.id != ''",
     "createRule": "@request.auth.id != ''",
@@ -392,12 +388,7 @@
         }
       }
     ],
-    "indexes": [
-      "CREATE INDEX idx_serial_number ON certificates (serial_number)",
-      "CREATE INDEX idx_status ON certificates (status)",
-      "CREATE INDEX idx_not_after ON certificates (not_after)",
-      "CREATE INDEX idx_issued_by ON certificates (issued_by)"
-    ],
+    "indexes": [],
     "listRule": "@request.auth.id != ''",
     "viewRule": "@request.auth.id != ''",
     "createRule": "@request.auth.id != ''",
@@ -626,12 +617,7 @@
         }
       }
     ],
-    "indexes": [
-      "CREATE INDEX idx_action ON audit_logs (action)",
-      "CREATE INDEX idx_entity_type ON audit_logs (entity_type)",
-      "CREATE INDEX idx_user ON audit_logs (user)",
-      "CREATE INDEX idx_timestamp ON audit_logs (timestamp)"
-    ],
+    "indexes": [],
     "listRule": "@request.auth.id != ''",
     "viewRule": "@request.auth.id != ''",
     "createRule": "@request.auth.id != ''",
@@ -772,11 +758,7 @@
         }
       }
     ],
-    "indexes": [
-      "CREATE INDEX idx_report_type ON compliance_reports (report_type)",
-      "CREATE INDEX idx_generated_by ON compliance_reports (generated_by)",
-      "CREATE INDEX idx_generated_at ON compliance_reports (generated_at)"
-    ],
+    "indexes": [],
     "listRule": "@request.auth.id != ''",
     "viewRule": "@request.auth.id != ''",
     "createRule": "@request.auth.id != ''",
