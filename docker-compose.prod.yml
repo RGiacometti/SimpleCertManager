@@ -1,0 +1,91 @@
+version: '3.8'
+
+services:
+  pocketbase:
+    image: ghcr.io/${GITHUB_REPOSITORY_OWNER}/simplecert-pocketbase:${IMAGE_TAG:-latest}
+    container_name: simplecert-pocketbase
+    ports:
+      - "8090:8090"
+    volumes:
+      - pocketbase_data:/pb_data
+      - ./pocketbase/pb_migrations:/pb_migrations:ro
+    restart: always
+    networks:
+      - simplecert-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8090/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  backend:
+    image: ghcr.io/${GITHUB_REPOSITORY_OWNER}/simplecert-backend:${IMAGE_TAG:-latest}
+    container_name: simplecert-backend
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - POCKETBASE_URL=http://pocketbase:8090
+      - STORAGE_PATH=/app/storage
+    volumes:
+      - backend_storage:/app/storage
+    depends_on:
+      pocketbase:
+        condition: service_healthy
+    restart: always
+    networks:
+      - simplecert-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  frontend:
+    image: ghcr.io/${GITHUB_REPOSITORY_OWNER}/simplecert-frontend:${IMAGE_TAG:-latest}
+    container_name: simplecert-frontend
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./ssl:/etc/nginx/ssl:ro
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: always
+    networks:
+      - simplecert-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  pocketbase_data:
+    driver: local
+  backend_storage:
+    driver: local
+
+networks:
+  simplecert-network:
+    driver: bridge

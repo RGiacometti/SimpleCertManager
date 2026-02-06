@@ -1,0 +1,76 @@
+version: '3.8'
+
+services:
+  pocketbase:
+    build:
+      context: ./pocketbase
+      args:
+        POCKETBASE_VERSION: 0.21.0
+    container_name: simplecert-pocketbase
+    ports:
+      - "8090:8090"
+    volumes:
+      - pocketbase_data:/pb_data
+      - ./pocketbase/pb_migrations:/pb_migrations
+    restart: unless-stopped
+    networks:
+      - simplecert-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8090/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  backend:
+    build:
+      context: ./backend
+    container_name: simplecert-backend
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=development
+      - PORT=3001
+      - POCKETBASE_URL=http://pocketbase:8090
+      - STORAGE_PATH=/app/storage
+    volumes:
+      - ./backend/src:/app/src
+      - backend_storage:/app/storage
+    depends_on:
+      pocketbase:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - simplecert-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        REACT_APP_API_URL=http://localhost:3001/api
+        REACT_APP_POCKETBASE_URL=http://localhost:8090
+    container_name: simplecert-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - simplecert-network
+
+volumes:
+  pocketbase_data:
+    driver: local
+  backend_storage:
+    driver: local
+
+networks:
+  simplecert-network:
+    driver: bridge
