@@ -92,7 +92,7 @@ function generateSerialNumber() {
 /**
  * Calculate SHA-256 fingerprint of a certificate
  * @param {string} certificatePem - Certificate in PEM format
- * @returns {string} Hex-encoded SHA-256 fingerprint with colons
+ * @returns {string} Hex-encoded SHA-256 fingerprint (64 chars, lowercase)
  */
 function calculateFingerprint(certificatePem) {
   const cert = forge.pki.certificateFromPem(certificatePem);
@@ -102,8 +102,8 @@ function calculateFingerprint(certificatePem) {
   md.update(der);
   const hash = md.digest().toHex();
   
-  // Format with colons (e.g., AA:BB:CC:DD:...)
-  return hash.toUpperCase().match(/.{2}/g).join(':');
+  // Return lowercase hex without separators (exactly 64 characters)
+  return hash.toLowerCase();
 }
 
 /**
