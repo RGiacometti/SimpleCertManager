@@ -7,9 +7,11 @@ import {
   Box,
   Chip,
   Divider,
+  Button,
 } from '@mui/material';
-import { CheckCircle, Error, Security } from '@mui/icons-material';
+import { CheckCircle, Error, Security, Download } from '@mui/icons-material';
 import DateDisplay from '../common/DateDisplay';
+import api from '../../services/api';
 
 const CAStatus = ({ caConfig }) => {
   if (!caConfig) {
@@ -29,6 +31,25 @@ const CAStatus = ({ caConfig }) => {
   const daysUntilExpiry = Math.floor(
     (new Date(caConfig.ca_not_after) - new Date()) / (1000 * 60 * 60 * 24)
   );
+
+  const handleDownloadCACert = async () => {
+    try {
+      const response = await api.get('/ca/certificate', {
+        responseType: 'blob',
+      });
+      const blob = new Blob([response.data], { type: 'application/x-pem-file' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${caConfig.ca_name || 'ca'}-cert.pem`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Failed to download CA certificate:', error);
+    }
+  };
 
   return (
     <Card>
@@ -95,6 +116,17 @@ const CAStatus = ({ caConfig }) => {
             <Typography variant="body1">{caConfig.default_key_size} bits</Typography>
           </Grid>
         </Grid>
+
+        <Divider sx={{ my: 2 }} />
+
+        <Button
+          variant="outlined"
+          startIcon={<Download />}
+          onClick={handleDownloadCACert}
+          fullWidth
+        >
+          Download CA Certificate
+        </Button>
       </CardContent>
     </Card>
   );
