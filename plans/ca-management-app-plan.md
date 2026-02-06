@@ -99,7 +99,7 @@ Configuration de l'autorité de certification
 | id | text | ID auto-généré |
 | ca_name | text | Nom de la CA |
 | ca_certificate_pem | text | Certificat racine CA (PEM) |
-| ca_private_key_encrypted | text | Clé privée CA chiffrée |
+| ca_private_key_encrypted | text | Clé privée CA chiffrée (stockée sur disque) |
 | ca_serial_number | number | Dernier numéro de série utilisé |
 | ca_not_before | date | Date de début CA |
 | ca_not_after | date | Date de fin CA |
@@ -108,6 +108,8 @@ Configuration de l'autorité de certification
 | crl_distribution_point | text | URL du CRL |
 | created | date | Auto |
 | updated | date | Auto |
+
+**Note importante**: La passphrase de la clé privée CA n'est JAMAIS stockée. Elle doit être fournie par l'utilisateur à chaque opération de signature.
 
 ### Collection: `audit_logs`
 Journal d'audit
@@ -226,20 +228,23 @@ backend/
 ### Certificats
 - `GET /api/certificates` - Liste des certificats
 - `GET /api/certificates/:id` - Détails d'un certificat
-- `POST /api/certificates/issue/:requestId` - Émettre un certificat
-- `POST /api/certificates/:id/revoke` - Révoquer un certificat
-- `POST /api/certificates/:id/renew` - Renouveler un certificat
+- `POST /api/certificates/issue/:requestId` - Émettre un certificat (requiert passphrase CA dans le body)
+- `POST /api/certificates/:id/revoke` - Révoquer un certificat (requiert passphrase CA dans le body)
+- `POST /api/certificates/:id/renew` - Renouveler un certificat (requiert passphrase CA dans le body)
 - `GET /api/certificates/:id/download` - Télécharger certificat (.crt)
 - `GET /api/certificates/:id/download-key` - Télécharger clé privée (.key)
 - `GET /api/certificates/:id/download-bundle` - Télécharger bundle (.zip)
 - `GET /api/certificates/expiring` - Certificats expirant bientôt
 
+**Note**: Toutes les opérations de signature nécessitent que l'utilisateur fournisse la passphrase de la CA dans le corps de la requête.
+
 ### Configuration CA
 - `GET /api/ca/config` - Configuration actuelle
-- `POST /api/ca/initialize` - Initialiser la CA (première fois)
+- `POST /api/ca/initialize` - Initialiser la CA (première fois, requiert passphrase CA)
 - `PUT /api/ca/config` - Mettre à jour la configuration
 - `GET /api/ca/certificate` - Télécharger le certificat CA
 - `GET /api/ca/crl` - Télécharger la CRL
+- `POST /api/ca/verify-passphrase` - Vérifier la validité d'une passphrase CA
 
 ### Rapports
 - `GET /api/reports` - Liste des rapports
@@ -287,7 +292,8 @@ frontend/
 │   │   ├── ca/
 │   │   │   ├── CAConfig.jsx         # Configuration CA
 │   │   │   ├── CAInitialize.jsx     # Initialisation CA
-│   │   │   └── CAStatus.jsx         # Statut CA
+│   │   │   ├── CAStatus.jsx         # Statut CA
+│   │   │   └── PassphraseDialog.jsx # Dialog pour saisir la passphrase CA
 │   │   └── common/
 │   │       ├── StatusChip.jsx       # Chip de statut
 │   │       ├── DateDisplay.jsx      # Affichage de date
@@ -394,18 +400,37 @@ frontend/
 // - Certificat X.509 v3
 // - Extensions: basicConstraints (CA:TRUE), keyUsage
 // - Validité: 10 ans par défaut
+// - Chiffrement de la clé privée avec la passphrase fournie
+// - Stockage de la clé chiffrée sur disque (JAMAIS la passphrase)
 ```
+
+**Processus détaillé**:
+1. Générer une paire de clés RSA avec node-forge
+2. Créer un certificat auto-signé X.509 v3
+3. Chiffrer la clé privée avec la passphrase fournie (AES-256)
+4. Sauvegarder la clé chiffrée au format PEM avec en-tête `ENCRYPTED PRIVATE KEY`
+5. Sauvegarder le certificat CA au format PEM
+6. Stocker les métadonnées dans PocketBase (sans la passphrase)
 
 #### 5.2 Génération de certificat
 
 ```javascript
 // Processus:
-// 1. Générer une paire de clés RSA
-// 2. Créer une CSR (Certificate Signing Request)
-// 3. Signer avec la clé privée de la CA
-// 4. Ajouter les extensions (SAN, keyUsage, etc.)
-// 5. Sauvegarder au format PEM
+// 1. Recevoir la passphrase CA de l'utilisateur
+// 2. Charger et déchiffrer la clé privée CA avec la passphrase
+// 3. Générer une paire de clés RSA pour le nouveau certificat
+// 4. Créer une CSR (Certificate Signing Request)
+// 5. Signer avec la clé privée déchiffrée de la CA
+// 6. Ajouter les extensions (SAN, keyUsage, etc.)
+// 7. Sauvegarder au format PEM
+// 8. Effacer la passphrase et la clé déchiffrée de la mémoire
 ```
+
+**Gestion de la passphrase**:
+- La passphrase est reçue dans le corps de la requête POST
+- Elle est utilisée uniquement pour déchiffrer la clé CA en mémoire
+- Après la signature, toutes les variables contenant la passphrase sont écrasées
+- Aucun log ne doit contenir la passphrase
 
 #### 5.3 Révocation de certificat
 
@@ -467,16 +492,22 @@ sequenceDiagram
     B-->>F: Demande approuvée
 
     U->>F: Émettre certificat
-    F->>B: POST /api/certificates/issue/:requestId
+    F->>F: Demander passphrase CA
+    U->>F: Saisir passphrase
+    F->>B: POST /api/certificates/issue/:requestId + passphrase
     B->>DB: Récupérer request
-    B->>NF: Générer paire de clés
+    B->>FS: Charger clé privée CA chiffrée
+    B->>NF: Déchiffrer clé CA avec passphrase
+    NF-->>B: Clé CA déchiffrée
+    B->>NF: Générer paire de clés pour certificat
     NF-->>B: privateKey, publicKey
-    B->>NF: Créer et signer certificat
+    B->>NF: Créer et signer certificat avec clé CA
     NF-->>B: certificate (PEM)
     B->>FS: Sauvegarder .crt et .key
     B->>DB: Créer certificate
     B->>DB: Mettre à jour request status = issued
     B->>DB: Créer audit_log
+    Note over B: Passphrase effacée de la mémoire
     B-->>F: Certificat émis
     F-->>U: Succès + téléchargement
 ```
@@ -493,14 +524,20 @@ sequenceDiagram
     participant FS as File System
 
     U->>F: Révoquer certificat
-    F->>B: POST /api/certificates/:id/revoke
+    F->>F: Demander passphrase CA
+    U->>F: Saisir passphrase
+    F->>B: POST /api/certificates/:id/revoke + passphrase
     B->>DB: Récupérer certificate
+    B->>FS: Charger clé privée CA chiffrée
+    B->>NF: Déchiffrer clé CA avec passphrase
+    NF-->>B: Clé CA déchiffrée
     B->>DB: Mettre à jour status = revoked
     B->>DB: Ajouter revoked_at et reason
-    B->>NF: Mettre à jour CRL
+    B->>NF: Mettre à jour et signer CRL avec clé CA
     NF-->>B: CRL mise à jour
     B->>FS: Sauvegarder CRL
     B->>DB: Créer audit_log
+    Note over B: Passphrase effacée de la mémoire
     B-->>F: Certificat révoqué
     F-->>U: Confirmation
 ```
@@ -531,11 +568,21 @@ sequenceDiagram
 
 ## 7. Sécurité
 
-### 7.1 Stockage des clés privées
+### 7.1 Stockage des clés privées et passphrase
 
-- **Clé privée CA**: Chiffrée avec un mot de passe maître (stocké dans variable d'environnement)
-- **Clés privées des certificats**: Stockées dans un répertoire protégé avec permissions restrictives
+- **Clé privée CA**: Chiffrée avec une passphrase forte et stockée sur le système de fichiers
+- **Passphrase CA**: **JAMAIS stockée** - doit être fournie par l'utilisateur à chaque opération de signature
+- **Clés privées des certificats**: Stockées dans un répertoire protégé avec permissions restrictives (chmod 600)
 - **Accès**: Uniquement via l'API backend, jamais exposées directement
+- **Sécurité mémoire**: La passphrase est immédiatement effacée de la mémoire après utilisation
+
+#### Flux de sécurité de la passphrase:
+1. L'utilisateur saisit la passphrase dans le frontend (composant [`PassphraseDialog.jsx`](frontend/src/components/ca/PassphraseDialog.jsx))
+2. La passphrase est envoyée via HTTPS au backend
+3. Le backend déchiffre temporairement la clé CA en mémoire
+4. L'opération de signature est effectuée
+5. La passphrase et la clé déchiffrée sont immédiatement effacées de la mémoire
+6. Aucune trace de la passphrase n'est conservée (pas de logs, pas de cache)
 
 ### 7.2 Authentification et autorisation
 
@@ -556,20 +603,221 @@ sequenceDiagram
 - **Helmet**: Headers de sécurité HTTP
 - **Validation**: Validation stricte des entrées avec Joi
 
+### 7.5 Gestion sécurisée de la passphrase CA
+
+#### Principes de sécurité
+
+1. **Aucun stockage persistant**: La passphrase n'est JAMAIS stockée (ni en base de données, ni en fichier, ni en variable d'environnement)
+
+2. **Transmission sécurisée**:
+   - Communication obligatoire en HTTPS
+   - Passphrase envoyée uniquement dans le corps de requêtes POST
+   - Jamais dans les URL ou headers
+
+3. **Utilisation éphémère**:
+   - Chargée en mémoire uniquement pour l'opération en cours
+   - Effacée immédiatement après utilisation
+   - Pas de cache, pas de session
+
+4. **Validation**:
+   - Tentative de déchiffrement de la clé CA
+   - Si échec, erreur "Passphrase incorrecte"
+   - Limite de tentatives pour éviter les attaques par force brute
+
+5. **Audit sans exposition**:
+   - Les logs d'audit enregistrent l'action mais JAMAIS la passphrase
+   - En cas d'erreur, le message ne doit pas révéler d'informations sur la passphrase
+
+#### Implémentation dans le code
+
+```javascript
+// Exemple de fonction sécurisée
+async function signWithCA(passphrase, dataToSign) {
+  let caPrivateKey = null;
+  try {
+    // 1. Charger la clé chiffrée
+    const encryptedKey = await loadEncryptedCAKey();
+    
+    // 2. Déchiffrer avec la passphrase
+    caPrivateKey = forge.pki.decryptRsaPrivateKey(encryptedKey, passphrase);
+    
+    if (!caPrivateKey) {
+      throw new Error('Invalid passphrase');
+    }
+    
+    // 3. Effectuer la signature
+    const signature = performSignature(caPrivateKey, dataToSign);
+    
+    return signature;
+  } finally {
+    // 4. Nettoyage sécurisé de la mémoire
+    passphrase = null;
+    caPrivateKey = null;
+    if (global.gc) global.gc(); // Force garbage collection si disponible
+  }
+}
+```
+
+#### Interface utilisateur
+
+Le composant [`PassphraseDialog.jsx`](frontend/src/components/ca/PassphraseDialog.jsx) doit:
+- Afficher un champ de saisie de type "password"
+- Ne jamais stocker la passphrase dans le state React après envoi
+- Effacer le champ immédiatement après soumission
+- Afficher un message clair sur la sécurité (la passphrase n'est pas stockée)
+- Proposer une option "Se souvenir pour cette session" (optionnel, en mémoire uniquement)
+
 ---
 
-## 8. Déploiement
+## 8. Déploiement avec Docker
 
 ### 8.1 Structure de déploiement
 
 ```
 SimpleCertManager/
-├── backend/              # Backend Node.js
-├── frontend/             # Frontend React (build)
-├── pocketbase/           # Instance PocketBase
-│   ├── pb_data/         # Données PocketBase
-│   └── pocketbase       # Exécutable PocketBase
-└── docker-compose.yml   # (Optionnel) Configuration Docker
+├── backend/
+│   ├── src/
+│   ├── Dockerfile
+│   ├── .dockerignore
+│   └── package.json
+├── frontend/
+│   ├── src/
+│   ├── Dockerfile
+│   ├── .dockerignore
+│   └── package.json
+├── pocketbase/
+│   ├── Dockerfile
+│   └── pb_migrations/
+├── docker-compose.yml
+├── docker-compose.prod.yml
+├── .github/
+│   └── workflows/
+│       ├── build-backend.yml
+│       ├── build-frontend.yml
+│       └── build-pocketbase.yml
+└── .env.example
+```
+
+### 8.2 Dockerfiles
+
+#### Backend Dockerfile
+
+```dockerfile
+# backend/Dockerfile
+FROM node:18-alpine AS builder
+
+WORKDIR /app
+
+# Copier les fichiers de dépendances
+COPY package*.json ./
+
+# Installer les dépendances
+RUN npm ci --only=production
+
+# Copier le code source
+COPY src ./src
+
+# Stage de production
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Créer un utilisateur non-root
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nodejs -u 1001
+
+# Copier les dépendances et le code depuis le builder
+COPY --from=builder --chown=nodejs:nodejs /app/node_modules ./node_modules
+COPY --from=builder --chown=nodejs:nodejs /app/src ./src
+COPY --chown=nodejs:nodejs package*.json ./
+
+# Créer les répertoires de stockage
+RUN mkdir -p storage/ca storage/certificates storage/private_keys storage/crl && \
+    chown -R nodejs:nodejs storage && \
+    chmod 700 storage/private_keys
+
+USER nodejs
+
+EXPOSE 3001
+
+CMD ["node", "src/app.js"]
+```
+
+#### Frontend Dockerfile
+
+```dockerfile
+# frontend/Dockerfile
+FROM node:18-alpine AS builder
+
+WORKDIR /app
+
+# Copier les fichiers de dépendances
+COPY package*.json ./
+
+# Installer les dépendances
+RUN npm ci
+
+# Copier le code source
+COPY . .
+
+# Build de l'application React
+ARG REACT_APP_API_URL
+ARG REACT_APP_POCKETBASE_URL
+ENV REACT_APP_API_URL=$REACT_APP_API_URL
+ENV REACT_APP_POCKETBASE_URL=$REACT_APP_POCKETBASE_URL
+
+RUN npm run build
+
+# Stage de production avec Nginx
+FROM nginx:alpine
+
+# Copier la configuration Nginx personnalisée
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+# Copier les fichiers buildés
+COPY --from=builder /app/build /usr/share/nginx/html
+
+# Créer un utilisateur non-root
+RUN addgroup -g 1001 -S nginx && \
+    adduser -S nginx -u 1001 -G nginx
+
+EXPOSE 80
+
+CMD ["nginx", "-g", "daemon off;"]
+```
+
+#### PocketBase Dockerfile
+
+```dockerfile
+# pocketbase/Dockerfile
+FROM alpine:latest
+
+# Installer les dépendances
+RUN apk add --no-cache \
+    ca-certificates \
+    unzip \
+    wget
+
+# Télécharger PocketBase
+ARG POCKETBASE_VERSION=0.21.0
+RUN wget https://github.com/pocketbase/pocketbase/releases/download/v${POCKETBASE_VERSION}/pocketbase_${POCKETBASE_VERSION}_linux_amd64.zip \
+    && unzip pocketbase_${POCKETBASE_VERSION}_linux_amd64.zip \
+    && rm pocketbase_${POCKETBASE_VERSION}_linux_amd64.zip \
+    && chmod +x pocketbase
+
+# Créer un utilisateur non-root
+RUN addgroup -g 1001 -S pocketbase && \
+    adduser -S pocketbase -u 1001 -G pocketbase
+
+# Créer le répertoire de données
+RUN mkdir -p /pb_data /pb_migrations && \
+    chown -R pocketbase:pocketbase /pb_data /pb_migrations
+
+USER pocketbase
+
+EXPOSE 8090
+
+CMD ["/pocketbase", "serve", "--http=0.0.0.0:8090"]
 ```
 
 ### 8.2 Variables d'environnement
@@ -578,10 +826,14 @@ SimpleCertManager/
 ```
 PORT=3001
 POCKETBASE_URL=http://localhost:8090
-CA_PASSWORD=<mot_de_passe_fort>
 STORAGE_PATH=./storage
 NODE_ENV=production
+HTTPS_ENABLED=true
+SSL_CERT_PATH=./ssl/cert.pem
+SSL_KEY_PATH=./ssl/key.pem
 ```
+
+**Note importante**: La passphrase CA n'est PAS stockée dans les variables d'environnement pour des raisons de sécurité.
 
 **Frontend (.env)**:
 ```
@@ -604,6 +856,8 @@ cd frontend && npm install && npm start
 # Frontend (production)
 cd frontend && npm run build
 ```
+
+**📋 Note importante**: La configuration complète Docker (docker-compose.yml, docker-compose.prod.yml, nginx.conf, .dockerignore) et les GitHub Actions (CI/CD, build automatique, publication sur GitHub Container Registry) sont disponibles dans le fichier [`docker-and-cicd-config.md`](plans/docker-and-cicd-config.md:1).
 
 ---
 
@@ -658,9 +912,23 @@ Cette application fournira une solution simple et efficace pour gérer une autor
 - ✅ **Stack JavaScript unifié** (React + Node.js)
 - ✅ **Interface moderne** avec Material-UI
 - ✅ **Gestion complète** des certificats (demande, émission, révocation, renouvellement)
-- ✅ **Sécurité** avec audit complet et stockage sécurisé
+- ✅ **Sécurité renforcée** avec:
+  - Passphrase CA jamais stockée (fournie à chaque opération)
+  - Audit complet et immuable
+  - Clés privées chiffrées
+  - Communication HTTPS obligatoire
+  - Nettoyage sécurisé de la mémoire
 - ✅ **Rapports de conformité** automatisés
 - ✅ **Base de données simple** avec PocketBase
 - ✅ **Cryptographie pure JavaScript** avec node-forge (pas de dépendance OpenSSL externe)
 
-L'architecture est conçue pour être **simple à déployer** et **facile à maintenir** pour une petite équipe IT.
+L'architecture est conçue pour être **simple à déployer** et **facile à maintenir** pour une petite équipe IT, tout en respectant les **meilleures pratiques de sécurité** pour la gestion d'une autorité de certification.
+
+### Points de sécurité critiques
+
+⚠️ **La passphrase de la CA est le secret le plus important de l'application**:
+- Elle ne doit JAMAIS être stockée sur le serveur
+- Elle doit être mémorisée par les administrateurs
+- En cas de perte, il sera impossible de signer de nouveaux certificats
+- Il est recommandé de la stocker dans un gestionnaire de mots de passe sécurisé
+- Envisager un système de partage de secret (Shamir's Secret Sharing) pour les environnements critiques
