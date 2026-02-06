@@ -71,8 +71,17 @@ function logout() {
   pb.authStore.clear();
 }
 
+/**
+ * Get PocketBase instance
+ * @returns {PocketBase} PocketBase client instance
+ */
+function getPocketBase() {
+  return pb;
+}
+
 module.exports = {
   pb,
+  getPocketBase,
   initializeDatabase,
   authenticateAdmin,
   authenticateUser,
