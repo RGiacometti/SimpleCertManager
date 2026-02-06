@@ -1,355 +1,263 @@
 # SimpleCertManager
 
-> Application web de gestion d'autorité de certification (CA) locale pour petites équipes IT
+A simple Certificate Authority (CA) management application for small IT teams (10-50 SSL/TLS certificates).
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Docker](https://img.shields.io/badge/Docker-Ready-blue.svg)](https://www.docker.com/)
-[![Node.js](https://img.shields.io/badge/Node.js-18-green.svg)](https://nodejs.org/)
-[![React](https://img.shields.io/badge/React-18-blue.svg)](https://reactjs.org/)
+## 🎯 Overview
 
-## 📋 Vue d'ensemble
-
-SimpleCertManager est une application web complète pour gérer une autorité de certification (CA) locale. Elle permet de créer, émettre, révoquer et renouveler des certificats SSL/TLS de manière simple et sécurisée.
-
-### Fonctionnalités principales
-
-- ✅ **Gestion complète des certificats** : Demande, approbation, émission, révocation, renouvellement
-- ✅ **Interface moderne** : React + Material-UI avec design responsive
-- ✅ **Sécurité renforcée** : Passphrase CA jamais stockée, audit complet, HTTPS obligatoire
-- ✅ **Rapports de conformité** : Génération automatique de rapports mensuels/trimestriels/annuels
-- ✅ **Journal d'audit** : Traçabilité complète de toutes les actions
-- ✅ **Gestion CRL** : Certificate Revocation List automatique
-- ✅ **Déploiement Docker** : Conteneurisation complète avec docker-compose
-- ✅ **CI/CD automatique** : Build et publication automatique sur GitHub Container Registry
+SimpleCertManager provides a web-based interface to manage a local Certificate Authority, allowing you to:
+- Initialize and configure a CA
+- Create and manage certificate signing requests
+- Issue, revoke, and renew certificates
+- Generate Certificate Revocation Lists (CRL)
+- Track all operations with comprehensive audit logs
+- Generate compliance reports
 
 ## 🏗️ Architecture
 
-```
-┌─────────────────┐
-│  React Frontend │  ← Interface utilisateur (Material-UI)
-│   (Port 80)     │
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│  Node.js API    │  ← Backend Express + node-forge
-│   (Port 3001)   │
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│   PocketBase    │  ← Base de données + Auth
-│   (Port 8090)   │
-└─────────────────┘
-```
+- **Frontend**: React + Material-UI (MUI)
+- **Backend**: Node.js + Express.js
+- **Database**: PocketBase
+- **Certificate Management**: node-forge (pure JavaScript)
+- **Authentication**: PocketBase Auth
+- **Deployment**: Docker + Docker Compose
 
-### Stack technique
+## 🔒 Security Features
 
-- **Frontend** : React 18, Material-UI 5, React Router 6
-- **Backend** : Node.js 18, Express.js, node-forge (cryptographie)
-- **Base de données** : PocketBase (SQLite embarqué)
-- **Conteneurisation** : Docker, Docker Compose
-- **CI/CD** : GitHub Actions
-- **Registry** : GitHub Container Registry (ghcr.io)
+- **CA Passphrase**: NEVER stored - must be provided for each signing operation
+- **Private Keys**: Encrypted and stored with restricted permissions
+- **Audit Trail**: Complete logging of all operations
+- **HTTPS**: Enforced in production
+- **Rate Limiting**: Protection against brute force attacks
+- **Input Validation**: Strict validation with Joi
 
-## 🚀 Démarrage rapide
+## 📋 Prerequisites
 
-### Prérequis
-
-- Docker 20.10+
-- Docker Compose 2.0+
+- Docker and Docker Compose
 - Git
+- Node.js 18+ (for local development)
 
-### Installation (Développement)
+## 🚀 Quick Start
 
-1. **Cloner le repository**
+### Using Docker Compose (Recommended)
 
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/your-username/SimpleCertManager.git
+   cd SimpleCertManager
+   ```
+
+2. **Configure environment variables**
+   ```bash
+   cp .env.example .env
+   # Edit .env with your configuration
+   ```
+
+3. **Start the application**
+   ```bash
+   docker-compose up --build
+   ```
+
+4. **Access the application**
+   - Frontend: http://localhost
+   - Backend API: http://localhost:3001
+   - PocketBase Admin: http://localhost:8090/_/
+
+### Local Development
+
+#### Backend
 ```bash
-git clone https://github.com/your-username/SimpleCertManager.git
-cd SimpleCertManager
-```
-
-2. **Configurer les variables d'environnement**
-
-```bash
+cd backend
+npm install
 cp .env.example .env
-# Éditer .env avec vos valeurs
+npm start
 ```
 
-3. **Démarrer l'application**
-
+#### Frontend
 ```bash
-docker-compose up --build
+cd frontend
+npm install
+cp .env.example .env
+npm start
 ```
 
-4. **Accéder à l'application**
-
-- Frontend : http://localhost
-- Backend API : http://localhost:3001
-- PocketBase Admin : http://localhost:8090/_/
-
-### Installation (Production)
-
-1. **Configurer les variables d'environnement**
-
+#### PocketBase
 ```bash
-export GITHUB_REPOSITORY_OWNER=your-username
-export IMAGE_TAG=latest
+cd pocketbase
+# Download PocketBase from https://pocketbase.io/docs/
+./pocketbase serve
 ```
 
-2. **Démarrer avec les images du registry**
+## 📚 Documentation
 
-```bash
-docker-compose -f docker-compose.prod.yml pull
-docker-compose -f docker-compose.prod.yml up -d
-```
+- [Implementation Plan](plans/ca-management-app-plan.md) - Detailed application architecture and features
+- [Docker & CI/CD Configuration](plans/docker-and-cicd-config.md) - Docker setup and GitHub Actions
+- [Implementation Status](IMPLEMENTATION_STATUS.md) - Current progress and next steps
+- [PocketBase Migrations](pocketbase/pb_migrations/README.md) - Database schema
 
-3. **Vérifier le statut**
-
-```bash
-docker-compose -f docker-compose.prod.yml ps
-```
-
-## 📖 Documentation
-
-- **[Plan complet de l'application](plans/ca-management-app-plan.md)** : Architecture détaillée, schéma de base de données, endpoints API, flux de travail
-- **[Configuration Docker et CI/CD](plans/docker-and-cicd-config.md)** : Dockerfiles, docker-compose, GitHub Actions, commandes
-
-## 🔐 Sécurité
-
-### Gestion de la passphrase CA
-
-⚠️ **Point critique** : La passphrase de la CA est le secret le plus important de l'application.
-
-- ❌ **Jamais stockée** sur le serveur (ni en base de données, ni en fichier, ni en variable d'environnement)
-- ✅ **Fournie par l'utilisateur** à chaque opération de signature (émission, révocation)
-- ✅ **Utilisée temporairement** en mémoire puis immédiatement effacée
-- ✅ **Transmission sécurisée** via HTTPS uniquement
-
-### Bonnes pratiques
-
-1. **Mémoriser la passphrase** ou la stocker dans un gestionnaire de mots de passe sécurisé
-2. **Utiliser HTTPS** en production avec des certificats valides
-3. **Sauvegarder régulièrement** les volumes Docker (données PocketBase et certificats)
-4. **Limiter l'accès** à l'application aux administrateurs autorisés
-5. **Surveiller les logs d'audit** pour détecter les activités suspectes
-
-## 🔧 Commandes utiles
-
-### Développement
-
-```bash
-# Démarrer tous les services
-docker-compose up -d
-
-# Voir les logs
-docker-compose logs -f
-
-# Logs d'un service spécifique
-docker-compose logs -f backend
-
-# Redémarrer un service
-docker-compose restart backend
-
-# Arrêter tous les services
-docker-compose down
-```
-
-### Production
-
-```bash
-# Démarrer
-docker-compose -f docker-compose.prod.yml up -d
-
-# Mettre à jour les images
-docker-compose -f docker-compose.prod.yml pull
-docker-compose -f docker-compose.prod.yml up -d
-
-# Voir le statut
-docker-compose -f docker-compose.prod.yml ps
-
-# Arrêter
-docker-compose -f docker-compose.prod.yml down
-```
-
-### Maintenance
-
-```bash
-# Backup du volume PocketBase
-docker run --rm \
-  -v simplecertmanager_pocketbase_data:/data \
-  -v $(pwd):/backup \
-  alpine tar czf /backup/pocketbase-backup-$(date +%Y%m%d).tar.gz -C /data .
-
-# Backup du volume backend storage
-docker run --rm \
-  -v simplecertmanager_backend_storage:/data \
-  -v $(pwd):/backup \
-  alpine tar czf /backup/backend-storage-backup-$(date +%Y%m%d).tar.gz -C /data .
-
-# Restaurer un backup
-docker run --rm \
-  -v simplecertmanager_pocketbase_data:/data \
-  -v $(pwd):/backup \
-  alpine tar xzf /backup/pocketbase-backup-YYYYMMDD.tar.gz -C /data
-```
-
-## 📊 Fonctionnalités détaillées
-
-### Gestion des demandes de certificats
-
-1. **Créer une demande** avec les informations du certificat (CN, SAN, organisation, etc.)
-2. **Approuver ou rejeter** la demande
-3. **Émettre le certificat** après approbation (nécessite la passphrase CA)
-
-### Gestion des certificats
-
-- **Visualiser** tous les certificats émis avec filtres (statut, date d'expiration, CN)
-- **Télécharger** le certificat (.crt), la clé privée (.key) ou un bundle complet (.zip)
-- **Révoquer** un certificat avec raison (nécessite la passphrase CA)
-- **Renouveler** un certificat expirant (nécessite la passphrase CA)
-- **Alertes** pour les certificats expirant dans 30 jours
-
-### Rapports de conformité
-
-- Génération automatique de rapports (mensuel, trimestriel, annuel, à la demande)
-- Statistiques : certificats actifs, expirés, révoqués, expirant bientôt
-- Export en JSON ou PDF
-
-### Journal d'audit
-
-- Traçabilité complète de toutes les actions
-- Filtres par utilisateur, action, date, entité
-- Logs immuables (ne peuvent pas être modifiés)
-
-## 🏗️ Structure du projet
+## 🗂️ Project Structure
 
 ```
 SimpleCertManager/
-├── .github/
-│   └── workflows/          # GitHub Actions (CI/CD)
-│       ├── build-backend.yml
-│       ├── build-frontend.yml
-│       ├── build-pocketbase.yml
-│       └── ci.yml
-├── backend/
+├── backend/                 # Node.js + Express API
 │   ├── src/
-│   │   ├── config/         # Configuration
-│   │   ├── middleware/     # Middlewares Express
-│   │   ├── services/       # Services métier (CA, certificats, CRL, etc.)
-│   │   ├── routes/         # Routes API
-│   │   └── utils/          # Utilitaires
+│   │   ├── config/         # Configuration files
+│   │   ├── middleware/     # Express middleware
+│   │   ├── services/       # Business logic
+│   │   ├── routes/         # API routes
+│   │   ├── utils/          # Utility functions
+│   │   └── app.js          # Main application
+│   ├── storage/            # Certificate storage
 │   ├── Dockerfile
 │   └── package.json
-├── frontend/
+├── frontend/               # React + MUI application
 │   ├── src/
-│   │   ├── components/     # Composants React
-│   │   ├── pages/          # Pages de l'application
-│   │   ├── services/       # Services API
-│   │   ├── hooks/          # Hooks personnalisés
-│   │   └── theme/          # Thème Material-UI
+│   │   ├── components/     # React components
+│   │   ├── pages/          # Page components
+│   │   ├── services/       # API clients
+│   │   ├── context/        # React contexts
+│   │   ├── theme/          # MUI theme
+│   │   └── App.jsx         # Main app
+│   ├── public/
+│   ├── Dockerfile
 │   ├── nginx.conf
-│   ├── Dockerfile
 │   └── package.json
-├── pocketbase/
-│   ├── Dockerfile
-│   └── pb_migrations/      # Migrations de base de données
-├── plans/
-│   ├── ca-management-app-plan.md
-│   └── docker-and-cicd-config.md
-├── docker-compose.yml      # Configuration développement
-├── docker-compose.prod.yml # Configuration production
-├── .env.example
+├── pocketbase/             # PocketBase database
+│   ├── pb_migrations/      # Database migrations
+│   └── Dockerfile
+├── .github/
+│   └── workflows/          # GitHub Actions
+├── plans/                  # Documentation
+├── docker-compose.yml      # Development setup
+├── docker-compose.prod.yml # Production setup
 └── README.md
 ```
 
-## 🔄 Workflow CI/CD
+## 🔧 Configuration
 
-### Build automatique
+### Environment Variables
 
-Lorsque vous poussez du code sur `main` ou `develop` :
-
-1. **GitHub Actions** détecte les changements
-2. **Build** des images Docker pour les services modifiés
-3. **Tests** automatiques (linting, tests unitaires)
-4. **Push** des images sur GitHub Container Registry
-5. **Tag** automatique (latest, version, SHA)
-
-### Déploiement
-
-```bash
-# Pull des dernières images
-docker-compose -f docker-compose.prod.yml pull
-
-# Redémarrage avec les nouvelles images
-docker-compose -f docker-compose.prod.yml up -d
+#### Backend (.env)
+```env
+PORT=3001
+NODE_ENV=development
+POCKETBASE_URL=http://localhost:8090
+STORAGE_PATH=./storage
 ```
 
-## 🌐 Endpoints API
+#### Frontend (.env)
+```env
+REACT_APP_API_URL=http://localhost:3001/api
+REACT_APP_POCKETBASE_URL=http://localhost:8090
+```
 
-### Authentification
-- `POST /api/auth/login` - Connexion
-- `POST /api/auth/logout` - Déconnexion
-- `GET /api/auth/me` - Informations utilisateur
+**⚠️ Important**: The CA passphrase is NEVER stored in environment variables for security reasons.
 
-### Demandes de certificats
-- `GET /api/requests` - Liste des demandes
-- `POST /api/requests` - Créer une demande
-- `POST /api/requests/:id/approve` - Approuver
-- `POST /api/requests/:id/reject` - Rejeter
+## 📦 API Endpoints
 
-### Certificats
-- `GET /api/certificates` - Liste des certificats
-- `POST /api/certificates/issue/:requestId` - Émettre (+ passphrase)
-- `POST /api/certificates/:id/revoke` - Révoquer (+ passphrase)
-- `POST /api/certificates/:id/renew` - Renouveler (+ passphrase)
-- `GET /api/certificates/:id/download` - Télécharger
-- `GET /api/certificates/expiring` - Certificats expirant bientôt
+### Authentication
+- `POST /api/auth/login` - User login
+- `POST /api/auth/logout` - User logout
+- `GET /api/auth/me` - Get current user
 
-### Configuration CA
-- `GET /api/ca/config` - Configuration actuelle
-- `POST /api/ca/initialize` - Initialiser la CA (+ passphrase)
-- `GET /api/ca/certificate` - Télécharger le certificat CA
-- `GET /api/ca/crl` - Télécharger la CRL
+### Certificate Requests
+- `GET /api/requests` - List all requests
+- `POST /api/requests` - Create new request
+- `POST /api/requests/:id/approve` - Approve request
+- `POST /api/requests/:id/reject` - Reject request
 
-### Rapports et Audit
-- `GET /api/reports` - Liste des rapports
-- `POST /api/reports/generate` - Générer un rapport
-- `GET /api/audit/logs` - Journal d'audit
+### Certificates
+- `GET /api/certificates` - List all certificates
+- `POST /api/certificates/issue/:requestId` - Issue certificate (requires passphrase)
+- `POST /api/certificates/:id/revoke` - Revoke certificate (requires passphrase)
+- `GET /api/certificates/:id/download` - Download certificate
 
-## 🤝 Contribution
+### CA Configuration
+- `GET /api/ca/config` - Get CA configuration
+- `POST /api/ca/initialize` - Initialize CA (requires passphrase)
+- `GET /api/ca/certificate` - Download CA certificate
+- `GET /api/ca/crl` - Download CRL
 
-Les contributions sont les bienvenues ! Veuillez suivre ces étapes :
+### Reports & Audit
+- `GET /api/reports` - List reports
+- `POST /api/reports/generate` - Generate report
+- `GET /api/audit/logs` - View audit logs
 
-1. Fork le projet
-2. Créer une branche (`git checkout -b feature/AmazingFeature`)
-3. Commit vos changements (`git commit -m 'Add some AmazingFeature'`)
-4. Push vers la branche (`git push origin feature/AmazingFeature`)
-5. Ouvrir une Pull Request
+## 🧪 Testing
+
+```bash
+# Backend tests
+cd backend
+npm test
+
+# Frontend tests
+cd frontend
+npm test
+```
+
+## 🚢 Deployment
+
+### Production with Docker Compose
+
+1. **Set environment variables**
+   ```bash
+   export GITHUB_REPOSITORY_OWNER=your-username
+   export IMAGE_TAG=latest
+   ```
+
+2. **Deploy**
+   ```bash
+   docker-compose -f docker-compose.prod.yml up -d
+   ```
+
+### GitHub Container Registry
+
+Images are automatically built and published to GitHub Container Registry via GitHub Actions:
+- `ghcr.io/your-username/simplecert-backend:latest`
+- `ghcr.io/your-username/simplecert-frontend:latest`
+- `ghcr.io/your-username/simplecert-pocketbase:latest`
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'feat: add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+### Commit Convention
+
+Follow conventional commits:
+- `feat:` - New feature
+- `fix:` - Bug fix
+- `docs:` - Documentation changes
+- `chore:` - Maintenance tasks
+- `refactor:` - Code refactoring
+- `test:` - Test additions or changes
 
 ## 📝 License
 
-Ce projet est sous licence MIT. Voir le fichier `LICENSE` pour plus de détails.
+MIT License - see LICENSE file for details
 
-## 👥 Auteurs
+## ⚠️ Security Notice
 
-- **Votre Nom** - *Travail initial* - [YourGitHub](https://github.com/your-username)
+**Critical Security Requirements:**
+1. The CA passphrase must NEVER be stored anywhere
+2. Users must provide the passphrase for each signing operation
+3. Private keys are encrypted and stored with restricted permissions
+4. All operations are logged in the audit trail
+5. Use HTTPS in production environments
 
-## 🙏 Remerciements
+## 🆘 Support
 
-- [node-forge](https://github.com/digitalbazaar/forge) - Bibliothèque cryptographique JavaScript
-- [PocketBase](https://pocketbase.io/) - Backend as a Service
-- [Material-UI](https://mui.com/) - Composants React
-- [Express.js](https://expressjs.com/) - Framework web Node.js
+For issues, questions, or contributions, please open an issue on GitHub.
 
-## 📞 Support
+## 📊 Implementation Status
 
-Pour toute question ou problème :
+**Current Phase**: Phase 2 - Backend Core  
+**Overall Progress**: ~30% (Phase 1 complete)
 
-- 📧 Email : support@example.com
-- 🐛 Issues : [GitHub Issues](https://github.com/your-username/SimpleCertManager/issues)
-- 📖 Documentation : [Wiki](https://github.com/your-username/SimpleCertManager/wiki)
+See [IMPLEMENTATION_STATUS.md](IMPLEMENTATION_STATUS.md) for detailed progress tracking.
 
 ---
 
-**⚠️ Avertissement** : Cette application est conçue pour des environnements de petite à moyenne taille. Pour des besoins d'entreprise critiques, envisagez des solutions professionnelles avec support HSM (Hardware Security Module).
+**Built with ❤️ for secure certificate management**
