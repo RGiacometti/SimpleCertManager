@@ -16,26 +16,27 @@ async function authenticate(req, res, next) {
     
     const token = authHeader.substring(7); // Remove 'Bearer ' prefix
     
-    // Load auth store from token
-    pb.authStore.save(token);
+    // Set the auth token in PocketBase
+    pb.authStore.save(token, null);
     
-    // Verify token is valid
-    if (!pb.authStore.isValid) {
+    // Verify token by fetching user data
+    try {
+      const authData = await pb.collection('users').authRefresh();
+      
+      if (!authData || !authData.record) {
+        throw new AppError('Invalid or expired token', 401);
+      }
+      
+      // Attach user to request
+      req.user = authData.record;
+      req.userId = authData.record.id;
+      
+      next();
+    } catch (pbError) {
+      // Token is invalid or expired
+      pb.authStore.clear();
       throw new AppError('Invalid or expired token', 401);
     }
-    
-    // Get user data
-    const user = pb.authStore.model;
-    
-    if (!user) {
-      throw new AppError('User not found', 401);
-    }
-    
-    // Attach user to request
-    req.user = user;
-    req.userId = user.id;
-    
-    next();
   } catch (error) {
     if (error instanceof AppError) {
       next(error);
