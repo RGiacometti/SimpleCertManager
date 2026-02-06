@@ -24,9 +24,11 @@ const Audit = () => {
       if (filters.entity_type !== 'all') params.entity_type = filters.entity_type;
 
       const response = await api.get('/audit/logs', { params });
-      setLogs(response.data);
+      const data = response.data?.data || response.data;
+      setLogs(Array.isArray(data) ? data : (data?.items || []));
     } catch (error) {
       console.error('Failed to fetch audit logs:', error);
+      setLogs([]);
     } finally {
       setLoading(false);
     }

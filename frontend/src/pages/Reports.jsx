@@ -27,9 +27,11 @@ const Reports = () => {
     setLoading(true);
     try {
       const response = await api.get('/reports');
-      setReports(response.data);
+      const data = response.data?.data || response.data;
+      setReports(Array.isArray(data) ? data : (data?.items || []));
     } catch (error) {
       console.error('Failed to fetch reports:', error);
+      setReports([]);
     } finally {
       setLoading(false);
     }
