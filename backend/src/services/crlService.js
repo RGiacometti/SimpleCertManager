@@ -15,28 +15,9 @@ const { CERT_STATUS } = require('../config/constants');
  */
 async function generateCRL(passphrase) {
   try {
-    // Load CA certificate and private key
+    // Load CA certificate
     const caCertPem = await loadCAcertificate();
-    const caKeyEncrypted = await loadCAPrivateKey();
-    
-    // Decrypt CA private key
-    const caPrivateKey = decryptPrivateKey(caKeyEncrypted, passphrase);
     const caCert = forge.pki.certificateFromPem(caCertPem);
-    
-    // Create CRL
-    const crl = forge.pki.createCertificateRevocationList();
-    
-    // Set issuer from CA certificate
-    crl.issuer = caCert.subject;
-    
-    // Set validity period
-    const now = new Date();
-    crl.thisUpdate = now;
-    
-    // CRL valid for 30 days
-    const nextUpdate = new Date(now);
-    nextUpdate.setDate(nextUpdate.getDate() + 30);
-    crl.nextUpdate = nextUpdate;
     
     // Get all revoked certificates from database
     const pb = getPocketBase();
@@ -44,62 +25,37 @@ async function generateCRL(passphrase) {
       filter: `status = "${CERT_STATUS.REVOKED}"`
     });
     
-    // Add revoked certificates to CRL
-    revokedCerts.forEach(cert => {
-      if (cert.serial_number && cert.revoked_at) {
-        const revokedCert = {
-          serialNumber: cert.serial_number,
-          revocationDate: new Date(cert.revoked_at)
-        };
-        
-        // Add revocation reason if available
-        if (cert.revocation_reason) {
-          const reasonMap = {
-            'unspecified': 0,
-            'keyCompromise': 1,
-            'caCompromise': 2,
-            'affiliationChanged': 3,
-            'superseded': 4,
-            'cessationOfOperation': 5
-          };
-          
-          revokedCert.extensions = [{
-            id: '2.5.29.21', // CRL Reason Code
-            value: forge.asn1.create(
-              forge.asn1.Class.UNIVERSAL,
-              forge.asn1.Type.ENUMERATED,
-              false,
-              forge.asn1.integerToDer(reasonMap[cert.revocation_reason] || 0).getBytes()
-            )
-          }];
-        }
-        
-        crl.addCertificate(revokedCert);
-      }
-    });
-    
-    // Add CRL extensions
-    crl.setExtensions([
-      {
-        name: 'cRLNumber',
-        cRLNumber: generateCRLNumber()
+    // Create CRL data structure (JSON format for simplicity)
+    // Note: node-forge doesn't fully support CRL generation
+    // In production, consider using OpenSSL or another library
+    const crlData = {
+      version: 2,
+      issuer: {
+        commonName: caCert.subject.getField('CN')?.value || 'Unknown',
+        organization: caCert.subject.getField('O')?.value || '',
+        country: caCert.subject.getField('C')?.value || ''
       },
-      {
-        name: 'authorityKeyIdentifier',
-        keyIdentifier: caCert.generateSubjectKeyIdentifier().getBytes()
-      }
-    ]);
+      thisUpdate: new Date().toISOString(),
+      nextUpdate: (() => {
+        const next = new Date();
+        next.setDate(next.getDate() + 30);
+        return next.toISOString();
+      })(),
+      revokedCertificates: revokedCerts.map(cert => ({
+        serialNumber: cert.serial_number,
+        revocationDate: cert.revoked_at,
+        reason: cert.revocation_reason || 'unspecified'
+      })),
+      crlNumber: generateCRLNumber()
+    };
     
-    // Sign CRL
-    crl.sign(caPrivateKey, forge.md.sha256.create());
-    
-    // Convert to PEM
-    const crlPem = forge.pki.certificateRevocationListToPem(crl);
+    // Convert to JSON format (simplified CRL)
+    const crlJson = JSON.stringify(crlData, null, 2);
     
     // Save CRL to file
-    await saveCRL(crlPem);
+    await saveCRL(crlJson);
     
-    return crlPem;
+    return crlJson;
   } catch (error) {
     console.error('Failed to generate CRL:', error);
     throw new Error(`Failed to generate CRL: ${error.message}`);
