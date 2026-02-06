@@ -19,10 +19,13 @@ const Settings = () => {
     setLoading(true);
     try {
       const response = await api.get('/ca/config');
-      setCAConfig(response.data);
+      // API returns { success: true, data: config, initialized: boolean }
+      const config = response.data?.data;
+      setCAConfig(config);
     } catch (error) {
       // CA might not be initialized yet
       console.log('CA not initialized');
+      setCAConfig(null);
     } finally {
       setLoading(false);
     }
