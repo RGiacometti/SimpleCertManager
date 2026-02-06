@@ -1,6 +1,6 @@
 const express = require('express');
 const { authenticate } = require('../middleware/auth');
-const { validateRequest } = require('../middleware/validator');
+const { validateQuery } = require('../middleware/validator');
 const { auditFilterSchema } = require('../utils/validators');
 const {
   getAuditLogs,

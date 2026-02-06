@@ -1,7 +1,7 @@
 const express = require('express');
 const { getPocketBase } = require('../config/database');
 const { authenticate } = require('../middleware/auth');
-const { validateRequest } = require('../middleware/validator');
+const { validateBody } = require('../middleware/validator');
 const { certificateRequestSchema } = require('../utils/validators');
 const { REQUEST_STATUS } = require('../config/constants');
 const {
@@ -84,7 +84,7 @@ router.get('/:id', authenticate, async (req, res, next) => {
  * @desc    Create a new certificate request
  * @access  Private
  */
-router.post('/', authenticate, validateRequest(certificateRequestSchema), async (req, res, next) => {
+router.post('/', authenticate, validateBody(certificateRequestSchema), async (req, res, next) => {
   try {
     const pb = getPocketBase();
     
@@ -119,7 +119,7 @@ router.post('/', authenticate, validateRequest(certificateRequestSchema), async 
  * @desc    Update a certificate request (only if pending)
  * @access  Private
  */
-router.put('/:id', authenticate, validateRequest(certificateRequestSchema), async (req, res, next) => {
+router.put('/:id', authenticate, validateBody(certificateRequestSchema), async (req, res, next) => {
   try {
     const pb = getPocketBase();
     

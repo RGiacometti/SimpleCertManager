@@ -1,6 +1,6 @@
 const express = require('express');
 const { authenticate } = require('../middleware/auth');
-const { validateRequest } = require('../middleware/validator');
+const { validateBody } = require('../middleware/validator');
 const { passphraseSchema, revocationSchema } = require('../utils/validators');
 const {
   issueCertificate,
@@ -119,7 +119,7 @@ router.get('/:id', authenticate, async (req, res, next) => {
  * @desc    Issue a certificate from an approved request
  * @access  Private
  */
-router.post('/issue/:requestId', authenticate, validateRequest(passphraseSchema), async (req, res, next) => {
+router.post('/issue/:requestId', authenticate, validateBody(passphraseSchema), async (req, res, next) => {
   try {
     const { passphrase } = req.body;
     
@@ -152,7 +152,7 @@ router.post('/issue/:requestId', authenticate, validateRequest(passphraseSchema)
  * @desc    Revoke a certificate
  * @access  Private
  */
-router.post('/:id/revoke', authenticate, validateRequest(revocationSchema), async (req, res, next) => {
+router.post('/:id/revoke', authenticate, validateBody(revocationSchema), async (req, res, next) => {
   try {
     const { passphrase, reason, notes } = req.body;
     
@@ -186,7 +186,7 @@ router.post('/:id/revoke', authenticate, validateRequest(revocationSchema), asyn
  * @desc    Renew a certificate
  * @access  Private
  */
-router.post('/:id/renew', authenticate, validateRequest(passphraseSchema), async (req, res, next) => {
+router.post('/:id/renew', authenticate, validateBody(passphraseSchema), async (req, res, next) => {
   try {
     const { passphrase, validity_days } = req.body;
     

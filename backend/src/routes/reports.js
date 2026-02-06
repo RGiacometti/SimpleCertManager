@@ -1,6 +1,6 @@
 const express = require('express');
 const { authenticate } = require('../middleware/auth');
-const { validateRequest } = require('../middleware/validator');
+const { validateBody } = require('../middleware/validator');
 const { reportGenerationSchema } = require('../utils/validators');
 const {
   generateReport,
@@ -85,7 +85,7 @@ router.get('/:id', authenticate, async (req, res, next) => {
  * @desc    Generate a new report
  * @access  Private
  */
-router.post('/generate', authenticate, validateRequest(reportGenerationSchema), async (req, res, next) => {
+router.post('/generate', authenticate, validateBody(reportGenerationSchema), async (req, res, next) => {
   try {
     const { report_type, period_start, period_end } = req.body;
     

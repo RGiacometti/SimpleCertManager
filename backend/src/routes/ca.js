@@ -1,6 +1,6 @@
 const express = require('express');
 const { authenticate } = require('../middleware/auth');
-const { validateRequest } = require('../middleware/validator');
+const { validateBody } = require('../middleware/validator');
 const { caInitializationSchema, caConfigUpdateSchema, passphraseSchema } = require('../utils/validators');
 const {
   initializeCA,
@@ -57,7 +57,7 @@ router.get('/config', authenticate, async (req, res, next) => {
  * @desc    Initialize the Certificate Authority
  * @access  Private
  */
-router.post('/initialize', authenticate, validateRequest(caInitializationSchema), async (req, res, next) => {
+router.post('/initialize', authenticate, validateBody(caInitializationSchema), async (req, res, next) => {
   try {
     // Check if CA is already initialized
     const initialized = await checkCAInitialized();
@@ -96,7 +96,7 @@ router.post('/initialize', authenticate, validateRequest(caInitializationSchema)
  * @desc    Update CA configuration
  * @access  Private
  */
-router.put('/config', authenticate, validateRequest(caConfigUpdateSchema), async (req, res, next) => {
+router.put('/config', authenticate, validateBody(caConfigUpdateSchema), async (req, res, next) => {
   try {
     const updatedConfig = await updateCAConfig(req.body);
     
@@ -182,7 +182,7 @@ router.get('/crl/info', authenticate, async (req, res, next) => {
  * @desc    Regenerate CRL
  * @access  Private
  */
-router.post('/crl/regenerate', authenticate, validateRequest(passphraseSchema), async (req, res, next) => {
+router.post('/crl/regenerate', authenticate, validateBody(passphraseSchema), async (req, res, next) => {
   try {
     const { passphrase } = req.body;
     
@@ -205,7 +205,7 @@ router.post('/crl/regenerate', authenticate, validateRequest(passphraseSchema), 
  * @desc    Verify CA passphrase
  * @access  Private
  */
-router.post('/verify-passphrase', authenticate, validateRequest(passphraseSchema), async (req, res, next) => {
+router.post('/verify-passphrase', authenticate, validateBody(passphraseSchema), async (req, res, next) => {
   try {
     const { passphrase } = req.body;
     
