@@ -37,9 +37,9 @@ router.get('/', authenticate, async (req, res, next) => {
       parseInt(page),
       parseInt(limit),
       {
-        filter: filterQuery,
-        sort: '-created',
-        expand: 'requested_by'
+      filter: filterQuery,
+      sort: '-requested_at',
+      expand: 'requested_by'
       }
     );
     

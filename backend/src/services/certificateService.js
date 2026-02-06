@@ -393,7 +393,7 @@ async function getCertificates(filters = {}) {
     
     const result = await pb.collection('certificates').getList(page, limit, {
       filter: filterQuery,
-      sort: '-created',
+      sort: '-issued_at',
       expand: 'request_id,issued_by'
     });
     
