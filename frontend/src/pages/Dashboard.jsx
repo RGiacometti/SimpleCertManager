@@ -1,71 +1,144 @@
-import React from 'react';
-import { Container, Typography, Box, Paper, Grid } from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import {
+  Box,
+  Typography,
+  Grid,
+  Card,
+  CardContent,
+  Paper,
+} from '@mui/material';
+import {
+  Description,
+  Warning,
+  CheckCircle,
+  Assignment,
+} from '@mui/icons-material';
+import Layout from '../components/layout/Layout';
+import api from '../services/api';
 
 const Dashboard = () => {
-  return (
-    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-      <Typography variant="h4" gutterBottom>
-        Dashboard
-      </Typography>
-      
-      <Grid container spacing={3}>
-        <Grid item xs={12} md={6} lg={3}>
-          <Paper sx={{ p: 2 }}>
-            <Typography variant="h6" color="text.secondary">
-              Total Certificates
-            </Typography>
-            <Typography variant="h3">
-              0
-            </Typography>
-          </Paper>
-        </Grid>
-        
-        <Grid item xs={12} md={6} lg={3}>
-          <Paper sx={{ p: 2 }}>
-            <Typography variant="h6" color="text.secondary">
-              Active Certificates
-            </Typography>
-            <Typography variant="h3">
-              0
-            </Typography>
-          </Paper>
-        </Grid>
-        
-        <Grid item xs={12} md={6} lg={3}>
-          <Paper sx={{ p: 2 }}>
-            <Typography variant="h6" color="text.secondary">
-              Expiring Soon
-            </Typography>
-            <Typography variant="h3">
-              0
-            </Typography>
-          </Paper>
-        </Grid>
-        
-        <Grid item xs={12} md={6} lg={3}>
-          <Paper sx={{ p: 2 }}>
-            <Typography variant="h6" color="text.secondary">
-              Pending Requests
-            </Typography>
-            <Typography variant="h3">
-              0
-            </Typography>
-          </Paper>
-        </Grid>
-      </Grid>
+  const [stats, setStats] = useState({
+    totalCertificates: 0,
+    activeCertificates: 0,
+    expiringSoon: 0,
+    pendingRequests: 0,
+  });
+  const [loading, setLoading] = useState(true);
 
-      <Box sx={{ mt: 4 }}>
-        <Paper sx={{ p: 3 }}>
-          <Typography variant="h6" gutterBottom>
-            Welcome to SimpleCertManager
-          </Typography>
-          <Typography variant="body1" color="text.secondary">
-            This is your Certificate Authority management dashboard. 
-            Use the navigation menu to manage certificates, requests, and view reports.
-          </Typography>
-        </Paper>
+  useEffect(() => {
+    fetchStats();
+  }, []);
+
+  const fetchStats = async () => {
+    setLoading(true);
+    try {
+      const [certsResponse, requestsResponse, expiringResponse] = await Promise.all([
+        api.get('/certificates'),
+        api.get('/requests'),
+        api.get('/certificates/expiring'),
+      ]);
+
+      const certificates = certsResponse.data;
+      const requests = requestsResponse.data;
+      const expiring = expiringResponse.data;
+
+      setStats({
+        totalCertificates: certificates.length,
+        activeCertificates: certificates.filter((c) => c.status === 'active').length,
+        expiringSoon: expiring.length,
+        pendingRequests: requests.filter((r) => r.status === 'pending').length,
+      });
+    } catch (error) {
+      console.error('Failed to fetch stats:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const StatCard = ({ title, value, icon, color = 'primary' }) => (
+    <Card>
+      <CardContent>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <Box>
+            <Typography variant="body2" color="text.secondary" gutterBottom>
+              {title}
+            </Typography>
+            <Typography variant="h4">{value}</Typography>
+          </Box>
+          <Box
+            sx={{
+              backgroundColor: `${color}.light`,
+              borderRadius: 2,
+              p: 1.5,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            {icon}
+          </Box>
+        </Box>
+      </CardContent>
+    </Card>
+  );
+
+  return (
+    <Layout>
+      <Box>
+        <Typography variant="h4" gutterBottom>
+          Dashboard
+        </Typography>
+        <Typography variant="body2" color="text.secondary" paragraph>
+          Overview of your certificate management system
+        </Typography>
+
+        <Grid container spacing={3}>
+          <Grid item xs={12} sm={6} md={3}>
+            <StatCard
+              title="Total Certificates"
+              value={stats.totalCertificates}
+              icon={<Description color="primary" />}
+              color="primary"
+            />
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <StatCard
+              title="Active Certificates"
+              value={stats.activeCertificates}
+              icon={<CheckCircle color="success" />}
+              color="success"
+            />
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <StatCard
+              title="Expiring Soon"
+              value={stats.expiringSoon}
+              icon={<Warning color="warning" />}
+              color="warning"
+            />
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <StatCard
+              title="Pending Requests"
+              value={stats.pendingRequests}
+              icon={<Assignment color="info" />}
+              color="info"
+            />
+          </Grid>
+
+          <Grid item xs={12}>
+            <Paper sx={{ p: 3 }}>
+              <Typography variant="h6" gutterBottom>
+                Quick Actions
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Use the navigation menu to manage certificates, review requests, generate reports, or configure your CA.
+              </Typography>
+            </Paper>
+          </Grid>
+        </Grid>
       </Box>
-    </Container>
+    </Layout>
   );
 };
 

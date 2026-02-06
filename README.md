@@ -216,27 +216,56 @@ Images are automatically built and published to GitHub Container Registry via Gi
 - `ghcr.io/your-username/simplecert-frontend:latest`
 - `ghcr.io/your-username/simplecert-pocketbase:latest`
 
+### CI/CD Pipelines
+
+The project includes automated CI/CD workflows:
+- **build-backend.yml** - Builds and pushes backend Docker image
+- **build-frontend.yml** - Builds and pushes frontend Docker image
+- **build-pocketbase.yml** - Builds and pushes PocketBase Docker image
+- **ci.yml** - Runs tests and linting on push/PR
+
+All workflows are triggered on push to `main` or `develop` branches, and on pull requests.
+
 ## 🤝 Contributing
+
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
+
+### Quick Start for Contributors
 
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'feat: add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+3. Make your changes following our coding standards
+4. Run tests and linting:
+   ```bash
+   # Backend
+   cd backend
+   npm test
+   npm run lint
+   
+   # Frontend
+   cd frontend
+   npm test
+   npm run lint
+   ```
+5. Commit your changes (`git commit -m 'feat: add amazing feature'`)
+6. Push to the branch (`git push origin feature/amazing-feature`)
+7. Open a Pull Request
 
 ### Commit Convention
 
-Follow conventional commits:
+Follow [Conventional Commits](https://www.conventionalcommits.org/):
 - `feat:` - New feature
 - `fix:` - Bug fix
 - `docs:` - Documentation changes
 - `chore:` - Maintenance tasks
 - `refactor:` - Code refactoring
 - `test:` - Test additions or changes
+- `ci:` - CI/CD changes
+- `perf:` - Performance improvements
 
 ## 📝 License
 
-MIT License - see LICENSE file for details
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## ⚠️ Security Notice
 
@@ -253,10 +282,44 @@ For issues, questions, or contributions, please open an issue on GitHub.
 
 ## 📊 Implementation Status
 
-**Current Phase**: Phase 2 - Backend Core  
-**Overall Progress**: ~30% (Phase 1 complete)
+**Current Phase**: Phase 5 - Tests and Deployment
+**Overall Progress**: ~95% (Phases 1-4 complete, Phase 5 in progress)
 
 See [IMPLEMENTATION_STATUS.md](IMPLEMENTATION_STATUS.md) for detailed progress tracking.
+
+### Completed Features
+
+✅ **Phase 1**: Base Configuration
+- Docker setup (backend, frontend, PocketBase)
+- Environment configuration
+- Project structure
+
+✅ **Phase 2**: Backend Core
+- CA management with node-forge
+- Certificate operations (issue, revoke, renew)
+- CRL generation and management
+- Audit logging
+- Report generation
+- Complete REST API
+
+✅ **Phase 3**: Frontend Core
+- React + Material-UI interface
+- Certificate management UI
+- Request management
+- CA configuration
+- Dashboard and reports
+
+✅ **Phase 4**: Advanced Features
+- CRL distribution
+- Comprehensive reporting
+- Audit log visualization
+
+🚧 **Phase 5**: Tests and Deployment (In Progress)
+- ✅ GitHub Actions CI/CD
+- ✅ Docker configuration
+- ✅ Documentation
+- ⏳ Unit tests (optional)
+- ⏳ Integration tests (optional)
 
 ---
 

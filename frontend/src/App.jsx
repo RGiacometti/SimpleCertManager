@@ -4,8 +4,15 @@ import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import theme from './theme/theme';
-import Login from './pages/Dashboard';
+
+// Pages
+import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
+import Certificates from './pages/Certificates';
+import Requests from './pages/Requests';
+import Reports from './pages/Reports';
+import Audit from './pages/Audit';
+import Settings from './pages/Settings';
 
 // Protected Route component
 const ProtectedRoute = ({ children }) => {
@@ -25,7 +32,10 @@ function App() {
       <AuthProvider>
         <Router>
           <Routes>
+            {/* Public routes */}
             <Route path="/login" element={<Login />} />
+
+            {/* Protected routes */}
             <Route
               path="/"
               element={
@@ -34,6 +44,56 @@ function App() {
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/certificates"
+              element={
+                <ProtectedRoute>
+                  <Certificates />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/requests"
+              element={
+                <ProtectedRoute>
+                  <Requests />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/reports"
+              element={
+                <ProtectedRoute>
+                  <Reports />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/audit"
+              element={
+                <ProtectedRoute>
+                  <Audit />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/settings"
+              element={
+                <ProtectedRoute>
+                  <Settings />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/ca-config"
+              element={
+                <ProtectedRoute>
+                  <Settings />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Catch all - redirect to dashboard */}
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
         </Router>
