@@ -5,13 +5,13 @@ import {
   DialogContent,
   DialogActions,
   Button,
-  Grid,
   Typography,
   Box,
   Divider,
   Chip,
   IconButton,
 } from '@mui/material';
+import Grid from '@mui/material/Grid';
 import { Close, ContentCopy } from '@mui/icons-material';
 import StatusChip from '../common/StatusChip';
 import DateDisplay from '../common/DateDisplay';
@@ -48,7 +48,7 @@ const CertificateDetails = ({ certificate, open, onClose }) => {
       <DialogContent dividers>
         <Grid container spacing={3}>
           {/* Status */}
-          <Grid item xs={12}>
+          <Grid size={12}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
               <Typography variant="subtitle2" color="text.secondary">
                 Status:
@@ -57,18 +57,18 @@ const CertificateDetails = ({ certificate, open, onClose }) => {
             </Box>
           </Grid>
 
-          <Grid item xs={12}>
+          <Grid size={12}>
             <Divider />
           </Grid>
 
           {/* Subject Information */}
-          <Grid item xs={12}>
+          <Grid size={12}>
             <Typography variant="h6" gutterBottom>
               Subject Information
             </Typography>
           </Grid>
 
-          <Grid item xs={12} sm={6}>
+          <Grid size={{ xs: 12, sm: 6 }}>
             <Typography variant="subtitle2" color="text.secondary">
               Common Name
             </Typography>
@@ -76,7 +76,7 @@ const CertificateDetails = ({ certificate, open, onClose }) => {
           </Grid>
 
           {certificate.subject?.organization && (
-            <Grid item xs={12} sm={6}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <Typography variant="subtitle2" color="text.secondary">
                 Organization
               </Typography>
@@ -85,7 +85,7 @@ const CertificateDetails = ({ certificate, open, onClose }) => {
           )}
 
           {certificate.subject?.organizational_unit && (
-            <Grid item xs={12} sm={6}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <Typography variant="subtitle2" color="text.secondary">
                 Organizational Unit
               </Typography>
@@ -96,7 +96,7 @@ const CertificateDetails = ({ certificate, open, onClose }) => {
           )}
 
           {certificate.subject?.country && (
-            <Grid item xs={12} sm={6}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <Typography variant="subtitle2" color="text.secondary">
                 Country
               </Typography>
@@ -104,18 +104,18 @@ const CertificateDetails = ({ certificate, open, onClose }) => {
             </Grid>
           )}
 
-          <Grid item xs={12}>
+          <Grid size={12}>
             <Divider />
           </Grid>
 
           {/* Certificate Information */}
-          <Grid item xs={12}>
+          <Grid size={12}>
             <Typography variant="h6" gutterBottom>
               Certificate Information
             </Typography>
           </Grid>
 
-          <Grid item xs={12} sm={6}>
+          <Grid size={{ xs: 12, sm: 6 }}>
             <Typography variant="subtitle2" color="text.secondary">
               Serial Number
             </Typography>
@@ -132,7 +132,7 @@ const CertificateDetails = ({ certificate, open, onClose }) => {
             </Box>
           </Grid>
 
-          <Grid item xs={12} sm={6}>
+          <Grid size={{ xs: 12, sm: 6 }}>
             <Typography variant="subtitle2" color="text.secondary">
               Fingerprint (SHA-256)
             </Typography>
@@ -152,21 +152,21 @@ const CertificateDetails = ({ certificate, open, onClose }) => {
             </Box>
           </Grid>
 
-          <Grid item xs={12} sm={6}>
+          <Grid size={{ xs: 12, sm: 6 }}>
             <Typography variant="subtitle2" color="text.secondary">
               Valid From
             </Typography>
             <DateDisplay date={certificate.not_before} format="PPpp" />
           </Grid>
 
-          <Grid item xs={12} sm={6}>
+          <Grid size={{ xs: 12, sm: 6 }}>
             <Typography variant="subtitle2" color="text.secondary">
               Valid Until
             </Typography>
             <DateDisplay date={certificate.not_after} format="PPpp" />
           </Grid>
 
-          <Grid item xs={12} sm={6}>
+          <Grid size={{ xs: 12, sm: 6 }}>
             <Typography variant="subtitle2" color="text.secondary">
               Issued At
             </Typography>
@@ -175,14 +175,14 @@ const CertificateDetails = ({ certificate, open, onClose }) => {
 
           {certificate.revoked_at && (
             <>
-              <Grid item xs={12} sm={6}>
+              <Grid size={{ xs: 12, sm: 6 }}>
                 <Typography variant="subtitle2" color="text.secondary">
                   Revoked At
                 </Typography>
                 <DateDisplay date={certificate.revoked_at} format="PPpp" showRelative />
               </Grid>
               {certificate.revocation_reason && (
-                <Grid item xs={12}>
+                <Grid size={12}>
                   <Typography variant="subtitle2" color="text.secondary">
                     Revocation Reason
                   </Typography>
@@ -195,15 +195,15 @@ const CertificateDetails = ({ certificate, open, onClose }) => {
           {/* Issuer Information */}
           {certificate.issuer && (
             <>
-              <Grid item xs={12}>
+              <Grid size={12}>
                 <Divider />
               </Grid>
-              <Grid item xs={12}>
+              <Grid size={12}>
                 <Typography variant="h6" gutterBottom>
                   Issuer Information
                 </Typography>
               </Grid>
-              <Grid item xs={12}>
+              <Grid size={12}>
                 <Typography variant="body2">
                   {certificate.issuer.common_name || 'Certificate Authority'}
                 </Typography>

@@ -2,11 +2,11 @@ import React, { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
-  Grid,
   Card,
   CardContent,
   Paper,
 } from '@mui/material';
+import Grid from '@mui/material/Grid';
 import {
   Description,
   Warning,
@@ -98,7 +98,7 @@ const Dashboard = () => {
         </Typography>
 
         <Grid container spacing={3}>
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             <StatCard
               title="Total Certificates"
               value={stats.totalCertificates}
@@ -106,7 +106,7 @@ const Dashboard = () => {
               color="primary"
             />
           </Grid>
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             <StatCard
               title="Active Certificates"
               value={stats.activeCertificates}
@@ -114,7 +114,7 @@ const Dashboard = () => {
               color="success"
             />
           </Grid>
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             <StatCard
               title="Expiring Soon"
               value={stats.expiringSoon}
@@ -122,7 +122,7 @@ const Dashboard = () => {
               color="warning"
             />
           </Grid>
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             <StatCard
               title="Pending Requests"
               value={stats.pendingRequests}
@@ -131,7 +131,7 @@ const Dashboard = () => {
             />
           </Grid>
 
-          <Grid item xs={12}>
+          <Grid size={12}>
             <Paper sx={{ p: 3 }}>
               <Typography variant="h6" gutterBottom>
                 Quick Actions

@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import {
   Box,
-  Grid,
   TextField,
   MenuItem,
   InputAdornment,
   Typography,
   Paper,
 } from '@mui/material';
+import Grid from '@mui/material/Grid';
 import { Search } from '@mui/icons-material';
 import CertificateCard from './CertificateCard';
 import LoadingSpinner from '../common/LoadingSpinner';
@@ -46,7 +46,7 @@ const CertificateList = ({
     <Box>
       <Paper sx={{ p: 2, mb: 3 }}>
         <Grid container spacing={2}>
-          <Grid item xs={12} md={8}>
+          <Grid size={{ xs: 12, md: 8 }}>
             <TextField
               fullWidth
               placeholder="Search by common name or serial number..."
@@ -61,7 +61,7 @@ const CertificateList = ({
               }}
             />
           </Grid>
-          <Grid item xs={12} md={4}>
+          <Grid size={{ xs: 12, md: 4 }}>
             <TextField
               fullWidth
               select
@@ -93,7 +93,7 @@ const CertificateList = ({
       ) : (
         <Grid container spacing={3}>
           {filteredCertificates.map((certificate) => (
-            <Grid item xs={12} sm={6} md={4} key={certificate.id}>
+            <Grid size={{ xs: 12, sm: 6, md: 4 }} key={certificate.id}>
               <CertificateCard
                 certificate={certificate}
                 onView={onView}

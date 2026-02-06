@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Typography, Paper, TextField, Grid, MenuItem } from '@mui/material';
+import { Box, Typography, Paper, TextField, MenuItem } from '@mui/material';
+import Grid from '@mui/material/Grid';
 import Layout from '../components/layout/Layout';
 import AuditLog from '../components/audit/AuditLog';
 import api from '../services/api';
@@ -46,7 +47,7 @@ const Audit = () => {
 
         <Paper sx={{ p: 2, mb: 3 }}>
           <Grid container spacing={2}>
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <TextField
                 fullWidth
                 select
@@ -63,7 +64,7 @@ const Audit = () => {
                 <MenuItem value="renew_certificate">Renew Certificate</MenuItem>
               </TextField>
             </Grid>
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <TextField
                 fullWidth
                 select

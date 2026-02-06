@@ -3,13 +3,13 @@ import {
   Box,
   Typography,
   Paper,
-  Grid,
   Card,
   CardContent,
   Button,
   TextField,
   MenuItem,
 } from '@mui/material';
+import Grid from '@mui/material/Grid';
 import { Assessment, Download } from '@mui/icons-material';
 import Layout from '../components/layout/Layout';
 import api from '../services/api';
@@ -89,7 +89,7 @@ const Reports = () => {
             Generate New Report
           </Typography>
           <Grid container spacing={2} alignItems="center">
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <TextField
                 fullWidth
                 select
@@ -103,7 +103,7 @@ const Reports = () => {
                 <MenuItem value="on_demand">On Demand</MenuItem>
               </TextField>
             </Grid>
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <Button
                 fullWidth
                 variant="contained"
@@ -122,7 +122,7 @@ const Reports = () => {
         </Typography>
         <Grid container spacing={3}>
           {reports.length === 0 ? (
-            <Grid item xs={12}>
+            <Grid size={12}>
               <Paper sx={{ p: 4, textAlign: 'center' }}>
                 <Typography variant="body1" color="text.secondary">
                   No reports available. Generate your first report above.
@@ -131,7 +131,7 @@ const Reports = () => {
             </Grid>
           ) : (
             reports.map((report) => (
-              <Grid item xs={12} md={6} key={report.id}>
+              <Grid size={{ xs: 12, md: 6 }} key={report.id}>
                 <Card>
                   <CardContent>
                     <Typography variant="h6" gutterBottom>
@@ -141,13 +141,13 @@ const Reports = () => {
                       Generated: {new Date(report.generated_at).toLocaleDateString()}
                     </Typography>
                     <Grid container spacing={2}>
-                      <Grid item xs={6}>
+                      <Grid size={6}>
                         <Typography variant="body2" color="text.secondary">
                           Total Certificates
                         </Typography>
                         <Typography variant="h6">{report.total_certificates}</Typography>
                       </Grid>
-                      <Grid item xs={6}>
+                      <Grid size={6}>
                         <Typography variant="body2" color="text.secondary">
                           Active
                         </Typography>
@@ -155,7 +155,7 @@ const Reports = () => {
                           {report.active_certificates}
                         </Typography>
                       </Grid>
-                      <Grid item xs={6}>
+                      <Grid size={6}>
                         <Typography variant="body2" color="text.secondary">
                           Expired
                         </Typography>
@@ -163,7 +163,7 @@ const Reports = () => {
                           {report.expired_certificates}
                         </Typography>
                       </Grid>
-                      <Grid item xs={6}>
+                      <Grid size={6}>
                         <Typography variant="body2" color="text.secondary">
                           Expiring Soon
                         </Typography>

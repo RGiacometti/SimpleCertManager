@@ -3,12 +3,12 @@ import {
   Card,
   CardContent,
   Typography,
-  Grid,
   Box,
   Chip,
   Divider,
   Button,
 } from '@mui/material';
+import Grid from '@mui/material/Grid';
 import { CheckCircle, Error, Security, Download } from '@mui/icons-material';
 import DateDisplay from '../common/DateDisplay';
 import api from '../../services/api';
@@ -72,19 +72,19 @@ const CAStatus = ({ caConfig }) => {
         <Divider sx={{ my: 2 }} />
 
         <Grid container spacing={2}>
-          <Grid item xs={12} sm={6}>
+          <Grid size={{ xs: 12, sm: 6 }}>
             <Typography variant="subtitle2" color="text.secondary">
               Valid From
             </Typography>
             <DateDisplay date={caConfig.ca_not_before} format="PPP" />
           </Grid>
-          <Grid item xs={12} sm={6}>
+          <Grid size={{ xs: 12, sm: 6 }}>
             <Typography variant="subtitle2" color="text.secondary">
               Valid Until
             </Typography>
             <DateDisplay date={caConfig.ca_not_after} format="PPP" />
           </Grid>
-          <Grid item xs={12} sm={6}>
+          <Grid size={{ xs: 12, sm: 6 }}>
             <Typography variant="subtitle2" color="text.secondary">
               Days Until Expiry
             </Typography>
@@ -95,13 +95,13 @@ const CAStatus = ({ caConfig }) => {
               {daysUntilExpiry > 0 ? daysUntilExpiry : 0} days
             </Typography>
           </Grid>
-          <Grid item xs={12} sm={6}>
+          <Grid size={{ xs: 12, sm: 6 }}>
             <Typography variant="subtitle2" color="text.secondary">
               Certificates Issued
             </Typography>
             <Typography variant="body1">{caConfig.ca_serial_number || 0}</Typography>
           </Grid>
-          <Grid item xs={12} sm={6}>
+          <Grid size={{ xs: 12, sm: 6 }}>
             <Typography variant="subtitle2" color="text.secondary">
               Default Validity
             </Typography>
@@ -109,7 +109,7 @@ const CAStatus = ({ caConfig }) => {
               {caConfig.default_validity_days} days
             </Typography>
           </Grid>
-          <Grid item xs={12} sm={6}>
+          <Grid size={{ xs: 12, sm: 6 }}>
             <Typography variant="subtitle2" color="text.secondary">
               Default Key Size
             </Typography>

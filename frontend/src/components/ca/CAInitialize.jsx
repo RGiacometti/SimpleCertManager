@@ -9,10 +9,10 @@ import {
   StepLabel,
   Button,
   TextField,
-  Grid,
   Alert,
   MenuItem,
 } from '@mui/material';
+import Grid from '@mui/material/Grid';
 import { Security } from '@mui/icons-material';
 import api from '../../services/api';
 
@@ -83,7 +83,7 @@ const CAInitialize = ({ onComplete }) => {
       case 0:
         return (
           <Grid container spacing={2}>
-            <Grid item xs={12}>
+            <Grid size={12}>
               <TextField
                 required
                 fullWidth
@@ -93,7 +93,7 @@ const CAInitialize = ({ onComplete }) => {
                 helperText="e.g., My Company Root CA"
               />
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
                 required
                 fullWidth
@@ -102,7 +102,7 @@ const CAInitialize = ({ onComplete }) => {
                 onChange={handleChange('organization')}
               />
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
                 fullWidth
                 label="Organizational Unit"
@@ -110,7 +110,7 @@ const CAInitialize = ({ onComplete }) => {
                 onChange={handleChange('organizational_unit')}
               />
             </Grid>
-            <Grid item xs={12} sm={4}>
+            <Grid size={{ xs: 12, sm: 4 }}>
               <TextField
                 required
                 fullWidth
@@ -121,7 +121,7 @@ const CAInitialize = ({ onComplete }) => {
                 helperText="2-letter code (e.g., US)"
               />
             </Grid>
-            <Grid item xs={12} sm={4}>
+            <Grid size={{ xs: 12, sm: 4 }}>
               <TextField
                 fullWidth
                 label="State/Province"
@@ -129,7 +129,7 @@ const CAInitialize = ({ onComplete }) => {
                 onChange={handleChange('state')}
               />
             </Grid>
-            <Grid item xs={12} sm={4}>
+            <Grid size={{ xs: 12, sm: 4 }}>
               <TextField
                 fullWidth
                 label="City/Locality"
@@ -137,7 +137,7 @@ const CAInitialize = ({ onComplete }) => {
                 onChange={handleChange('locality')}
               />
             </Grid>
-            <Grid item xs={12}>
+            <Grid size={12}>
               <TextField
                 required
                 fullWidth
@@ -153,7 +153,7 @@ const CAInitialize = ({ onComplete }) => {
       case 1:
         return (
           <Grid container spacing={2}>
-            <Grid item xs={12} sm={6}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
                 required
                 fullWidth
@@ -167,7 +167,7 @@ const CAInitialize = ({ onComplete }) => {
                 <MenuItem value={4096}>4096 bits (Recommended)</MenuItem>
               </TextField>
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
                 required
                 fullWidth
@@ -179,13 +179,13 @@ const CAInitialize = ({ onComplete }) => {
                 helperText="How long the CA certificate will be valid"
               />
             </Grid>
-            <Grid item xs={12}>
+            <Grid size={12}>
               <Alert severity="warning" sx={{ mb: 2 }}>
-                <strong>Important:</strong> The passphrase protects your CA private key. 
+                <strong>Important:</strong> The passphrase protects your CA private key.
                 It will be required for all certificate operations. Store it securely!
               </Alert>
             </Grid>
-            <Grid item xs={12}>
+            <Grid size={12}>
               <TextField
                 required
                 fullWidth
@@ -196,7 +196,7 @@ const CAInitialize = ({ onComplete }) => {
                 helperText="Minimum 12 characters. Use a strong passphrase!"
               />
             </Grid>
-            <Grid item xs={12}>
+            <Grid size={12}>
               <TextField
                 required
                 fullWidth
@@ -216,31 +216,31 @@ const CAInitialize = ({ onComplete }) => {
               Please review your CA configuration before proceeding.
             </Alert>
             <Grid container spacing={2}>
-              <Grid item xs={12}>
+              <Grid size={12}>
                 <Typography variant="subtitle2" color="text.secondary">
                   CA Name
                 </Typography>
                 <Typography variant="body1">{formData.ca_name}</Typography>
               </Grid>
-              <Grid item xs={12} sm={6}>
+              <Grid size={{ xs: 12, sm: 6 }}>
                 <Typography variant="subtitle2" color="text.secondary">
                   Organization
                 </Typography>
                 <Typography variant="body1">{formData.organization}</Typography>
               </Grid>
-              <Grid item xs={12} sm={6}>
+              <Grid size={{ xs: 12, sm: 6 }}>
                 <Typography variant="subtitle2" color="text.secondary">
                   Email
                 </Typography>
                 <Typography variant="body1">{formData.email}</Typography>
               </Grid>
-              <Grid item xs={12} sm={6}>
+              <Grid size={{ xs: 12, sm: 6 }}>
                 <Typography variant="subtitle2" color="text.secondary">
                   Key Size
                 </Typography>
                 <Typography variant="body1">{formData.key_size} bits</Typography>
               </Grid>
-              <Grid item xs={12} sm={6}>
+              <Grid size={{ xs: 12, sm: 6 }}>
                 <Typography variant="subtitle2" color="text.secondary">
                   Validity
                 </Typography>

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Typography, Grid, Snackbar, Alert } from '@mui/material';
+import { Box, Typography, Snackbar, Alert } from '@mui/material';
+import Grid from '@mui/material/Grid';
 import Layout from '../components/layout/Layout';
 import CAStatus from '../components/ca/CAStatus';
 import CAConfig from '../components/ca/CAConfig';
@@ -53,15 +54,15 @@ const Settings = () => {
 
         <Grid container spacing={3}>
           {!loading && !caConfig ? (
-            <Grid item xs={12}>
+            <Grid size={12}>
               <CAInitialize onComplete={handleCAInitialized} />
             </Grid>
           ) : (
             <>
-              <Grid item xs={12}>
+              <Grid size={12}>
                 <CAStatus caConfig={caConfig} />
               </Grid>
-              <Grid item xs={12}>
+              <Grid size={12}>
                 <CAConfig caConfig={caConfig} onUpdate={handleConfigUpdate} />
               </Grid>
             </>

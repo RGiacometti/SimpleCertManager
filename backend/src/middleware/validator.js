@@ -50,7 +50,11 @@ function validateQuery(schema) {
       ));
     }
     
-    req.query = value;
+    // In Express 5, req.query is a getter and cannot be reassigned directly
+    // Store validated query on req.validatedQuery and merge into req.query object
+    Object.keys(value).forEach(key => {
+      req.query[key] = value[key];
+    });
     next();
   };
 }

@@ -6,12 +6,12 @@ import {
   DialogActions,
   Button,
   TextField,
-  Grid,
   Typography,
   Box,
   Alert,
   Divider,
 } from '@mui/material';
+import Grid from '@mui/material/Grid';
 import { CheckCircle, Cancel } from '@mui/icons-material';
 import StatusChip from '../common/StatusChip';
 import DateDisplay from '../common/DateDisplay';
@@ -99,54 +99,54 @@ const RequestApproval = ({ request, open, onClose, onUpdate }) => {
           )}
 
           <Grid container spacing={2}>
-            <Grid item xs={12}>
+            <Grid size={12}>
               <Typography variant="h6" gutterBottom>
                 Subject Information
               </Typography>
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <Typography variant="subtitle2" color="text.secondary">
                 Common Name
               </Typography>
               <Typography variant="body1">{request.common_name}</Typography>
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <Typography variant="subtitle2" color="text.secondary">
                 Organization
               </Typography>
               <Typography variant="body1">{request.organization || '-'}</Typography>
             </Grid>
             {request.organizational_unit && (
-              <Grid item xs={12} sm={6}>
+              <Grid size={{ xs: 12, sm: 6 }}>
                 <Typography variant="subtitle2" color="text.secondary">
                   Organizational Unit
                 </Typography>
                 <Typography variant="body1">{request.organizational_unit}</Typography>
               </Grid>
             )}
-            <Grid item xs={12} sm={6}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <Typography variant="subtitle2" color="text.secondary">
                 Email
               </Typography>
               <Typography variant="body1">{request.email}</Typography>
             </Grid>
 
-            <Grid item xs={12}>
+            <Grid size={12}>
               <Divider sx={{ my: 1 }} />
             </Grid>
 
-            <Grid item xs={12}>
+            <Grid size={12}>
               <Typography variant="h6" gutterBottom>
                 Certificate Settings
               </Typography>
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <Typography variant="subtitle2" color="text.secondary">
                 Key Size
               </Typography>
               <Typography variant="body1">{request.key_size} bits</Typography>
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <Typography variant="subtitle2" color="text.secondary">
                 Validity
               </Typography>
@@ -155,16 +155,16 @@ const RequestApproval = ({ request, open, onClose, onUpdate }) => {
 
             {(request.san_dns?.length > 0 || request.san_ip?.length > 0) && (
               <>
-                <Grid item xs={12}>
+                <Grid size={12}>
                   <Divider sx={{ my: 1 }} />
                 </Grid>
-                <Grid item xs={12}>
+                <Grid size={12}>
                   <Typography variant="h6" gutterBottom>
                     Subject Alternative Names
                   </Typography>
                 </Grid>
                 {request.san_dns?.length > 0 && (
-                  <Grid item xs={12}>
+                  <Grid size={12}>
                     <Typography variant="subtitle2" color="text.secondary">
                       DNS Names
                     </Typography>
@@ -174,7 +174,7 @@ const RequestApproval = ({ request, open, onClose, onUpdate }) => {
                   </Grid>
                 )}
                 {request.san_ip?.length > 0 && (
-                  <Grid item xs={12}>
+                  <Grid size={12}>
                     <Typography variant="subtitle2" color="text.secondary">
                       IP Addresses
                     </Typography>
@@ -186,11 +186,11 @@ const RequestApproval = ({ request, open, onClose, onUpdate }) => {
               </>
             )}
 
-            <Grid item xs={12}>
+            <Grid size={12}>
               <Divider sx={{ my: 1 }} />
             </Grid>
 
-            <Grid item xs={12} sm={6}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <Typography variant="subtitle2" color="text.secondary">
                 Requested At
               </Typography>
@@ -198,7 +198,7 @@ const RequestApproval = ({ request, open, onClose, onUpdate }) => {
             </Grid>
 
             {request.notes && (
-              <Grid item xs={12}>
+              <Grid size={12}>
                 <Typography variant="subtitle2" color="text.secondary">
                   Notes
                 </Typography>
@@ -207,7 +207,7 @@ const RequestApproval = ({ request, open, onClose, onUpdate }) => {
             )}
 
             {(canApprove || canIssue) && (
-              <Grid item xs={12}>
+              <Grid size={12}>
                 <TextField
                   fullWidth
                   multiline

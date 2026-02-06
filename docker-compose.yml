@@ -53,8 +53,8 @@ services:
     build:
       context: ./frontend
       args:
-        REACT_APP_API_URL=http://localhost:3001/api
-        REACT_APP_POCKETBASE_URL=http://localhost:8090
+        VITE_API_URL=http://localhost:3001/api
+        VITE_POCKETBASE_URL=http://localhost:8090
     container_name: simplecert-frontend
     ports:
       - "80:80"

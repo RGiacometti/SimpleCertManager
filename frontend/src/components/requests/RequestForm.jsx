@@ -6,7 +6,6 @@ import {
   DialogActions,
   Button,
   TextField,
-  Grid,
   MenuItem,
   Box,
   Typography,
@@ -14,6 +13,7 @@ import {
   Chip,
   Alert,
 } from '@mui/material';
+import Grid from '@mui/material/Grid';
 import { Close, Add, Delete } from '@mui/icons-material';
 import api from '../../services/api';
 
@@ -150,12 +150,12 @@ const RequestForm = ({ open, onClose, onSuccess, caConfig }) => {
           )}
 
           <Grid container spacing={2}>
-            <Grid item xs={12}>
+            <Grid size={12}>
               <Typography variant="subtitle2" gutterBottom>
                 Subject Information
               </Typography>
             </Grid>
-            <Grid item xs={12}>
+            <Grid size={12}>
               <TextField
                 required
                 fullWidth
@@ -166,7 +166,7 @@ const RequestForm = ({ open, onClose, onSuccess, caConfig }) => {
                 disabled={loading}
               />
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
                 required
                 fullWidth
@@ -176,7 +176,7 @@ const RequestForm = ({ open, onClose, onSuccess, caConfig }) => {
                 disabled={loading}
               />
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
                 fullWidth
                 label="Organizational Unit"
@@ -185,7 +185,7 @@ const RequestForm = ({ open, onClose, onSuccess, caConfig }) => {
                 disabled={loading}
               />
             </Grid>
-            <Grid item xs={12} sm={4}>
+            <Grid size={{ xs: 12, sm: 4 }}>
               <TextField
                 required
                 fullWidth
@@ -197,7 +197,7 @@ const RequestForm = ({ open, onClose, onSuccess, caConfig }) => {
                 disabled={loading}
               />
             </Grid>
-            <Grid item xs={12} sm={4}>
+            <Grid size={{ xs: 12, sm: 4 }}>
               <TextField
                 fullWidth
                 label="State/Province"
@@ -206,7 +206,7 @@ const RequestForm = ({ open, onClose, onSuccess, caConfig }) => {
                 disabled={loading}
               />
             </Grid>
-            <Grid item xs={12} sm={4}>
+            <Grid size={{ xs: 12, sm: 4 }}>
               <TextField
                 fullWidth
                 label="City/Locality"
@@ -215,7 +215,7 @@ const RequestForm = ({ open, onClose, onSuccess, caConfig }) => {
                 disabled={loading}
               />
             </Grid>
-            <Grid item xs={12}>
+            <Grid size={12}>
               <TextField
                 required
                 fullWidth
@@ -227,12 +227,12 @@ const RequestForm = ({ open, onClose, onSuccess, caConfig }) => {
               />
             </Grid>
 
-            <Grid item xs={12}>
+            <Grid size={12}>
               <Typography variant="subtitle2" gutterBottom sx={{ mt: 2 }}>
                 Subject Alternative Names (SAN)
               </Typography>
             </Grid>
-            <Grid item xs={12}>
+            <Grid size={12}>
               <Box sx={{ display: 'flex', gap: 1, mb: 1 }}>
                 <TextField
                   fullWidth
@@ -259,7 +259,7 @@ const RequestForm = ({ open, onClose, onSuccess, caConfig }) => {
                 ))}
               </Box>
             </Grid>
-            <Grid item xs={12}>
+            <Grid size={12}>
               <Box sx={{ display: 'flex', gap: 1, mb: 1 }}>
                 <TextField
                   fullWidth
@@ -287,12 +287,12 @@ const RequestForm = ({ open, onClose, onSuccess, caConfig }) => {
               </Box>
             </Grid>
 
-            <Grid item xs={12}>
+            <Grid size={12}>
               <Typography variant="subtitle2" gutterBottom sx={{ mt: 2 }}>
                 Certificate Settings
               </Typography>
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
                 required
                 fullWidth
@@ -306,7 +306,7 @@ const RequestForm = ({ open, onClose, onSuccess, caConfig }) => {
                 <MenuItem value={4096}>4096 bits</MenuItem>
               </TextField>
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
                 required
                 fullWidth
@@ -318,7 +318,7 @@ const RequestForm = ({ open, onClose, onSuccess, caConfig }) => {
                 disabled={loading}
               />
             </Grid>
-            <Grid item xs={12}>
+            <Grid size={12}>
               <TextField
                 fullWidth
                 multiline
