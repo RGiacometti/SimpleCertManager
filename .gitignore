@@ -1,0 +1,53 @@
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Build outputs
+dist/
+build/
+*.tsbuildinfo
+
+# Logs
+logs/
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Storage (certificates and keys - NEVER commit these!)
+backend/storage/ca/*
+backend/storage/certificates/*
+backend/storage/private_keys/*
+backend/storage/crl/*
+!backend/storage/ca/.gitkeep
+!backend/storage/certificates/.gitkeep
+!backend/storage/private_keys/.gitkeep
+!backend/storage/crl/.gitkeep
+
+# PocketBase data
+pocketbase/pb_data/
+
+# Test coverage
+coverage/
+.nyc_output/
+
+# Temporary files
+*.tmp
+*.temp
