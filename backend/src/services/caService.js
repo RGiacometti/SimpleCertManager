@@ -168,6 +168,7 @@ async function initializeCA(caData) {
     const caConfig = await pb.collection('ca_config').create({
       ca_name,
       ca_certificate_pem: certPem,
+      ca_private_key_encrypted: 'stored_on_disk', // Placeholder - actual key is stored in storage/ca/
       ca_serial_number: 1, // Start serial numbers from 1
       ca_not_before: notBefore.toISOString(),
       ca_not_after: notAfter.toISOString(),
