@@ -11,8 +11,49 @@ const app = express();
 // Configure server middleware
 configureServer(app);
 
-// API Routes will be added here
-// TODO: Add routes in Phase 2
+// Import routes
+const authRoutes = require('./routes/auth');
+const requestRoutes = require('./routes/requests');
+const certificateRoutes = require('./routes/certificates');
+const caRoutes = require('./routes/ca');
+const reportRoutes = require('./routes/reports');
+const auditRoutes = require('./routes/audit');
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.json({
+    success: true,
+    message: 'SimpleCertManager API is running',
+    timestamp: new Date().toISOString(),
+    environment: NODE_ENV
+  });
+});
+
+// API Routes
+app.use('/api/auth', authRoutes);
+app.use('/api/requests', requestRoutes);
+app.use('/api/certificates', certificateRoutes);
+app.use('/api/ca', caRoutes);
+app.use('/api/reports', reportRoutes);
+app.use('/api/audit', auditRoutes);
+
+// API documentation endpoint
+app.get('/api', (req, res) => {
+  res.json({
+    success: true,
+    message: 'SimpleCertManager API',
+    version: '1.0.0',
+    endpoints: {
+      auth: '/api/auth',
+      requests: '/api/requests',
+      certificates: '/api/certificates',
+      ca: '/api/ca',
+      reports: '/api/reports',
+      audit: '/api/audit'
+    },
+    documentation: 'See plans/ca-management-app-plan.md for API documentation'
+  });
+});
 
 // 404 handler
 app.use(notFoundHandler);
