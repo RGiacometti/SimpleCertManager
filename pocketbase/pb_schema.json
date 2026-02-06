@@ -1,6 +1,6 @@
 [
   {
-    "id": "certificate_requests",
+    "id": "cert_requests_col",
     "name": "certificate_requests",
     "type": "base",
     "system": false,
@@ -189,7 +189,7 @@
     "options": {}
   },
   {
-    "id": "certificates",
+    "id": "certificates_col",
     "name": "certificates",
     "type": "base",
     "system": false,
@@ -201,7 +201,7 @@
         "required": false,
         "unique": false,
         "options": {
-          "collectionId": "certificate_requests",
+          "collectionId": "cert_requests_col",
           "cascadeDelete": false,
           "minSelect": null,
           "maxSelect": 1,
@@ -397,7 +397,7 @@
     "options": {}
   },
   {
-    "id": "ca_config",
+    "id": "ca_config_col",
     "name": "ca_config",
     "type": "base",
     "system": false,
@@ -514,7 +514,7 @@
     "options": {}
   },
   {
-    "id": "audit_logs",
+    "id": "audit_logs_col",
     "name": "audit_logs",
     "type": "base",
     "system": false,
@@ -626,7 +626,7 @@
     "options": {}
   },
   {
-    "id": "compliance_reports",
+    "id": "compliance_reports_col",
     "name": "compliance_reports",
     "type": "base",
     "system": false,
