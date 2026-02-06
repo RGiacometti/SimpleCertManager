@@ -123,7 +123,7 @@ router.post('/issue/:requestId', authenticate, validateBody(passphraseSchema), a
   try {
     const { passphrase } = req.body;
     
-    const certificate = await issueCertificate(req.params.requestId, passphrase);
+    const certificate = await issueCertificate(req.params.requestId, passphrase, req.userId);
     
     // Log issuance
     await logIssueCertificate(

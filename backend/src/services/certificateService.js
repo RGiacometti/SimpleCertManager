@@ -25,9 +25,10 @@ const { CERT_STATUS, REQUEST_STATUS, REVOCATION_REASONS } = require('../config/c
  * Issue a certificate from an approved request
  * @param {string} requestId - Certificate request ID
  * @param {string} passphrase - CA passphrase
+ * @param {string} userId - User ID who is issuing the certificate
  * @returns {Promise<Object>} Issued certificate
  */
-async function issueCertificate(requestId, passphrase) {
+async function issueCertificate(requestId, passphrase, userId) {
   try {
     const pb = getPocketBase();
     
@@ -206,7 +207,8 @@ async function issueCertificate(requestId, passphrase) {
       certificate_path: certPath,
       private_key_path: keyPath,
       status: CERT_STATUS.ACTIVE,
-      issued_at: new Date().toISOString()
+      issued_at: new Date().toISOString(),
+      issued_by: userId
     });
     
     // Update request status to issued
