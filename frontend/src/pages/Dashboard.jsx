@@ -38,9 +38,14 @@ const Dashboard = () => {
         api.get('/certificates/expiring'),
       ]);
 
-      const certificates = certsResponse.data;
-      const requests = requestsResponse.data;
-      const expiring = expiringResponse.data;
+      // Extract data from paginated responses
+      const certsData = certsResponse.data?.data || certsResponse.data;
+      const requestsData = requestsResponse.data?.data || requestsResponse.data;
+      const expiringData = expiringResponse.data?.data || expiringResponse.data;
+
+      const certificates = Array.isArray(certsData) ? certsData : (certsData?.items || []);
+      const requests = Array.isArray(requestsData) ? requestsData : (requestsData?.items || []);
+      const expiring = Array.isArray(expiringData) ? expiringData : (expiringData?.items || []);
 
       setStats({
         totalCertificates: certificates.length,
