@@ -1,0 +1,787 @@
+[
+  {
+    "id": "certificate_requests",
+    "name": "certificate_requests",
+    "type": "base",
+    "system": false,
+    "schema": [
+      {
+        "id": "common_name",
+        "name": "common_name",
+        "type": "text",
+        "required": true,
+        "unique": false,
+        "options": {
+          "min": 1,
+          "max": 255,
+          "pattern": ""
+        }
+      },
+      {
+        "id": "organization",
+        "name": "organization",
+        "type": "text",
+        "required": false,
+        "unique": false,
+        "options": {
+          "min": null,
+          "max": 255,
+          "pattern": ""
+        }
+      },
+      {
+        "id": "organizational_unit",
+        "name": "organizational_unit",
+        "type": "text",
+        "required": false,
+        "unique": false,
+        "options": {
+          "min": null,
+          "max": 255,
+          "pattern": ""
+        }
+      },
+      {
+        "id": "country",
+        "name": "country",
+        "type": "text",
+        "required": false,
+        "unique": false,
+        "options": {
+          "min": 2,
+          "max": 2,
+          "pattern": "^[A-Z]{2}$"
+        }
+      },
+      {
+        "id": "state",
+        "name": "state",
+        "type": "text",
+        "required": false,
+        "unique": false,
+        "options": {
+          "min": null,
+          "max": 255,
+          "pattern": ""
+        }
+      },
+      {
+        "id": "locality",
+        "name": "locality",
+        "type": "text",
+        "required": false,
+        "unique": false,
+        "options": {
+          "min": null,
+          "max": 255,
+          "pattern": ""
+        }
+      },
+      {
+        "id": "email",
+        "name": "email",
+        "type": "email",
+        "required": false,
+        "unique": false,
+        "options": {
+          "exceptDomains": [],
+          "onlyDomains": []
+        }
+      },
+      {
+        "id": "san_dns",
+        "name": "san_dns",
+        "type": "json",
+        "required": false,
+        "unique": false,
+        "options": {}
+      },
+      {
+        "id": "san_ip",
+        "name": "san_ip",
+        "type": "json",
+        "required": false,
+        "unique": false,
+        "options": {}
+      },
+      {
+        "id": "key_size",
+        "name": "key_size",
+        "type": "number",
+        "required": true,
+        "unique": false,
+        "options": {
+          "min": 2048,
+          "max": 4096
+        }
+      },
+      {
+        "id": "validity_days",
+        "name": "validity_days",
+        "type": "number",
+        "required": true,
+        "unique": false,
+        "options": {
+          "min": 1,
+          "max": 825
+        }
+      },
+      {
+        "id": "status",
+        "name": "status",
+        "type": "select",
+        "required": true,
+        "unique": false,
+        "options": {
+          "maxSelect": 1,
+          "values": [
+            "pending",
+            "approved",
+            "rejected",
+            "issued"
+          ]
+        }
+      },
+      {
+        "id": "requested_by",
+        "name": "requested_by",
+        "type": "relation",
+        "required": true,
+        "unique": false,
+        "options": {
+          "collectionId": "_pb_users_auth_",
+          "cascadeDelete": false,
+          "minSelect": null,
+          "maxSelect": 1,
+          "displayFields": []
+        }
+      },
+      {
+        "id": "requested_at",
+        "name": "requested_at",
+        "type": "date",
+        "required": true,
+        "unique": false,
+        "options": {
+          "min": "",
+          "max": ""
+        }
+      },
+      {
+        "id": "notes",
+        "name": "notes",
+        "type": "text",
+        "required": false,
+        "unique": false,
+        "options": {
+          "min": null,
+          "max": 2000,
+          "pattern": ""
+        }
+      }
+    ],
+    "indexes": [
+      "CREATE INDEX idx_status ON certificate_requests (status)",
+      "CREATE INDEX idx_requested_by ON certificate_requests (requested_by)",
+      "CREATE INDEX idx_requested_at ON certificate_requests (requested_at)"
+    ],
+    "listRule": "@request.auth.id != ''",
+    "viewRule": "@request.auth.id != ''",
+    "createRule": "@request.auth.id != ''",
+    "updateRule": "@request.auth.id != '' && status = 'pending'",
+    "deleteRule": "@request.auth.id != '' && status = 'pending'",
+    "options": {}
+  },
+  {
+    "id": "certificates",
+    "name": "certificates",
+    "type": "base",
+    "system": false,
+    "schema": [
+      {
+        "id": "request_id",
+        "name": "request_id",
+        "type": "relation",
+        "required": false,
+        "unique": false,
+        "options": {
+          "collectionId": "certificate_requests",
+          "cascadeDelete": false,
+          "minSelect": null,
+          "maxSelect": 1,
+          "displayFields": []
+        }
+      },
+      {
+        "id": "serial_number",
+        "name": "serial_number",
+        "type": "text",
+        "required": true,
+        "unique": true,
+        "options": {
+          "min": 1,
+          "max": 255,
+          "pattern": ""
+        }
+      },
+      {
+        "id": "common_name",
+        "name": "common_name",
+        "type": "text",
+        "required": true,
+        "unique": false,
+        "options": {
+          "min": 1,
+          "max": 255,
+          "pattern": ""
+        }
+      },
+      {
+        "id": "subject",
+        "name": "subject",
+        "type": "json",
+        "required": true,
+        "unique": false,
+        "options": {}
+      },
+      {
+        "id": "issuer",
+        "name": "issuer",
+        "type": "json",
+        "required": true,
+        "unique": false,
+        "options": {}
+      },
+      {
+        "id": "not_before",
+        "name": "not_before",
+        "type": "date",
+        "required": true,
+        "unique": false,
+        "options": {
+          "min": "",
+          "max": ""
+        }
+      },
+      {
+        "id": "not_after",
+        "name": "not_after",
+        "type": "date",
+        "required": true,
+        "unique": false,
+        "options": {
+          "min": "",
+          "max": ""
+        }
+      },
+      {
+        "id": "fingerprint_sha256",
+        "name": "fingerprint_sha256",
+        "type": "text",
+        "required": true,
+        "unique": true,
+        "options": {
+          "min": 64,
+          "max": 64,
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      },
+      {
+        "id": "certificate_pem",
+        "name": "certificate_pem",
+        "type": "text",
+        "required": true,
+        "unique": false,
+        "options": {
+          "min": null,
+          "max": 10000,
+          "pattern": ""
+        }
+      },
+      {
+        "id": "certificate_path",
+        "name": "certificate_path",
+        "type": "text",
+        "required": true,
+        "unique": false,
+        "options": {
+          "min": 1,
+          "max": 500,
+          "pattern": ""
+        }
+      },
+      {
+        "id": "private_key_path",
+        "name": "private_key_path",
+        "type": "text",
+        "required": true,
+        "unique": false,
+        "options": {
+          "min": 1,
+          "max": 500,
+          "pattern": ""
+        }
+      },
+      {
+        "id": "status",
+        "name": "status",
+        "type": "select",
+        "required": true,
+        "unique": false,
+        "options": {
+          "maxSelect": 1,
+          "values": [
+            "active",
+            "expired",
+            "revoked"
+          ]
+        }
+      },
+      {
+        "id": "issued_at",
+        "name": "issued_at",
+        "type": "date",
+        "required": true,
+        "unique": false,
+        "options": {
+          "min": "",
+          "max": ""
+        }
+      },
+      {
+        "id": "issued_by",
+        "name": "issued_by",
+        "type": "relation",
+        "required": true,
+        "unique": false,
+        "options": {
+          "collectionId": "_pb_users_auth_",
+          "cascadeDelete": false,
+          "minSelect": null,
+          "maxSelect": 1,
+          "displayFields": []
+        }
+      },
+      {
+        "id": "revoked_at",
+        "name": "revoked_at",
+        "type": "date",
+        "required": false,
+        "unique": false,
+        "options": {
+          "min": "",
+          "max": ""
+        }
+      },
+      {
+        "id": "revocation_reason",
+        "name": "revocation_reason",
+        "type": "select",
+        "required": false,
+        "unique": false,
+        "options": {
+          "maxSelect": 1,
+          "values": [
+            "unspecified",
+            "keyCompromise",
+            "caCompromise",
+            "affiliationChanged",
+            "superseded",
+            "cessationOfOperation"
+          ]
+        }
+      }
+    ],
+    "indexes": [
+      "CREATE INDEX idx_serial_number ON certificates (serial_number)",
+      "CREATE INDEX idx_status ON certificates (status)",
+      "CREATE INDEX idx_not_after ON certificates (not_after)",
+      "CREATE INDEX idx_issued_by ON certificates (issued_by)"
+    ],
+    "listRule": "@request.auth.id != ''",
+    "viewRule": "@request.auth.id != ''",
+    "createRule": "@request.auth.id != ''",
+    "updateRule": "@request.auth.id != ''",
+    "deleteRule": null,
+    "options": {}
+  },
+  {
+    "id": "ca_config",
+    "name": "ca_config",
+    "type": "base",
+    "system": false,
+    "schema": [
+      {
+        "id": "ca_name",
+        "name": "ca_name",
+        "type": "text",
+        "required": true,
+        "unique": false,
+        "options": {
+          "min": 1,
+          "max": 255,
+          "pattern": ""
+        }
+      },
+      {
+        "id": "ca_certificate_pem",
+        "name": "ca_certificate_pem",
+        "type": "text",
+        "required": true,
+        "unique": false,
+        "options": {
+          "min": null,
+          "max": 10000,
+          "pattern": ""
+        }
+      },
+      {
+        "id": "ca_private_key_encrypted",
+        "name": "ca_private_key_encrypted",
+        "type": "text",
+        "required": true,
+        "unique": false,
+        "options": {
+          "min": null,
+          "max": 10000,
+          "pattern": ""
+        }
+      },
+      {
+        "id": "ca_serial_number",
+        "name": "ca_serial_number",
+        "type": "number",
+        "required": true,
+        "unique": false,
+        "options": {
+          "min": 1,
+          "max": null
+        }
+      },
+      {
+        "id": "ca_not_before",
+        "name": "ca_not_before",
+        "type": "date",
+        "required": true,
+        "unique": false,
+        "options": {
+          "min": "",
+          "max": ""
+        }
+      },
+      {
+        "id": "ca_not_after",
+        "name": "ca_not_after",
+        "type": "date",
+        "required": true,
+        "unique": false,
+        "options": {
+          "min": "",
+          "max": ""
+        }
+      },
+      {
+        "id": "default_validity_days",
+        "name": "default_validity_days",
+        "type": "number",
+        "required": true,
+        "unique": false,
+        "options": {
+          "min": 1,
+          "max": 825
+        }
+      },
+      {
+        "id": "default_key_size",
+        "name": "default_key_size",
+        "type": "number",
+        "required": true,
+        "unique": false,
+        "options": {
+          "min": 2048,
+          "max": 4096
+        }
+      },
+      {
+        "id": "crl_distribution_point",
+        "name": "crl_distribution_point",
+        "type": "url",
+        "required": false,
+        "unique": false,
+        "options": {
+          "exceptDomains": [],
+          "onlyDomains": []
+        }
+      }
+    ],
+    "indexes": [],
+    "listRule": "@request.auth.id != ''",
+    "viewRule": "@request.auth.id != ''",
+    "createRule": "@request.auth.id != ''",
+    "updateRule": "@request.auth.id != ''",
+    "deleteRule": null,
+    "options": {}
+  },
+  {
+    "id": "audit_logs",
+    "name": "audit_logs",
+    "type": "base",
+    "system": false,
+    "schema": [
+      {
+        "id": "action",
+        "name": "action",
+        "type": "select",
+        "required": true,
+        "unique": false,
+        "options": {
+          "maxSelect": 1,
+          "values": [
+            "create_request",
+            "approve_request",
+            "reject_request",
+            "issue_certificate",
+            "revoke_certificate",
+            "renew_certificate",
+            "download_certificate",
+            "view_certificate",
+            "initialize_ca",
+            "update_ca_config",
+            "generate_crl",
+            "generate_report"
+          ]
+        }
+      },
+      {
+        "id": "entity_type",
+        "name": "entity_type",
+        "type": "select",
+        "required": true,
+        "unique": false,
+        "options": {
+          "maxSelect": 1,
+          "values": [
+            "certificate_request",
+            "certificate",
+            "ca_config",
+            "report"
+          ]
+        }
+      },
+      {
+        "id": "entity_id",
+        "name": "entity_id",
+        "type": "text",
+        "required": false,
+        "unique": false,
+        "options": {
+          "min": null,
+          "max": 255,
+          "pattern": ""
+        }
+      },
+      {
+        "id": "user",
+        "name": "user",
+        "type": "relation",
+        "required": true,
+        "unique": false,
+        "options": {
+          "collectionId": "_pb_users_auth_",
+          "cascadeDelete": false,
+          "minSelect": null,
+          "maxSelect": 1,
+          "displayFields": []
+        }
+      },
+      {
+        "id": "details",
+        "name": "details",
+        "type": "json",
+        "required": false,
+        "unique": false,
+        "options": {}
+      },
+      {
+        "id": "ip_address",
+        "name": "ip_address",
+        "type": "text",
+        "required": false,
+        "unique": false,
+        "options": {
+          "min": null,
+          "max": 45,
+          "pattern": ""
+        }
+      },
+      {
+        "id": "timestamp",
+        "name": "timestamp",
+        "type": "date",
+        "required": true,
+        "unique": false,
+        "options": {
+          "min": "",
+          "max": ""
+        }
+      }
+    ],
+    "indexes": [
+      "CREATE INDEX idx_action ON audit_logs (action)",
+      "CREATE INDEX idx_entity_type ON audit_logs (entity_type)",
+      "CREATE INDEX idx_user ON audit_logs (user)",
+      "CREATE INDEX idx_timestamp ON audit_logs (timestamp)"
+    ],
+    "listRule": "@request.auth.id != ''",
+    "viewRule": "@request.auth.id != ''",
+    "createRule": "@request.auth.id != ''",
+    "updateRule": null,
+    "deleteRule": null,
+    "options": {}
+  },
+  {
+    "id": "compliance_reports",
+    "name": "compliance_reports",
+    "type": "base",
+    "system": false,
+    "schema": [
+      {
+        "id": "report_type",
+        "name": "report_type",
+        "type": "select",
+        "required": true,
+        "unique": false,
+        "options": {
+          "maxSelect": 1,
+          "values": [
+            "monthly",
+            "quarterly",
+            "annual",
+            "on_demand"
+          ]
+        }
+      },
+      {
+        "id": "period_start",
+        "name": "period_start",
+        "type": "date",
+        "required": true,
+        "unique": false,
+        "options": {
+          "min": "",
+          "max": ""
+        }
+      },
+      {
+        "id": "period_end",
+        "name": "period_end",
+        "type": "date",
+        "required": true,
+        "unique": false,
+        "options": {
+          "min": "",
+          "max": ""
+        }
+      },
+      {
+        "id": "total_certificates",
+        "name": "total_certificates",
+        "type": "number",
+        "required": true,
+        "unique": false,
+        "options": {
+          "min": 0,
+          "max": null
+        }
+      },
+      {
+        "id": "active_certificates",
+        "name": "active_certificates",
+        "type": "number",
+        "required": true,
+        "unique": false,
+        "options": {
+          "min": 0,
+          "max": null
+        }
+      },
+      {
+        "id": "expired_certificates",
+        "name": "expired_certificates",
+        "type": "number",
+        "required": true,
+        "unique": false,
+        "options": {
+          "min": 0,
+          "max": null
+        }
+      },
+      {
+        "id": "revoked_certificates",
+        "name": "revoked_certificates",
+        "type": "number",
+        "required": true,
+        "unique": false,
+        "options": {
+          "min": 0,
+          "max": null
+        }
+      },
+      {
+        "id": "expiring_soon",
+        "name": "expiring_soon",
+        "type": "number",
+        "required": true,
+        "unique": false,
+        "options": {
+          "min": 0,
+          "max": null
+        }
+      },
+      {
+        "id": "report_data",
+        "name": "report_data",
+        "type": "json",
+        "required": true,
+        "unique": false,
+        "options": {}
+      },
+      {
+        "id": "generated_by",
+        "name": "generated_by",
+        "type": "relation",
+        "required": true,
+        "unique": false,
+        "options": {
+          "collectionId": "_pb_users_auth_",
+          "cascadeDelete": false,
+          "minSelect": null,
+          "maxSelect": 1,
+          "displayFields": []
+        }
+      },
+      {
+        "id": "generated_at",
+        "name": "generated_at",
+        "type": "date",
+        "required": true,
+        "unique": false,
+        "options": {
+          "min": "",
+          "max": ""
+        }
+      }
+    ],
+    "indexes": [
+      "CREATE INDEX idx_report_type ON compliance_reports (report_type)",
+      "CREATE INDEX idx_generated_by ON compliance_reports (generated_by)",
+      "CREATE INDEX idx_generated_at ON compliance_reports (generated_at)"
+    ],
+    "listRule": "@request.auth.id != ''",
+    "viewRule": "@request.auth.id != ''",
+    "createRule": "@request.auth.id != ''",
+    "updateRule": null,
+    "deleteRule": "@request.auth.id != ''",
+    "options": {}
+  }
+]
