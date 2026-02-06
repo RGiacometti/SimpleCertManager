@@ -11,7 +11,9 @@ const useCertificates = () => {
     setError(null);
     try {
       const response = await api.get('/certificates');
-      setCertificates(response.data?.data || response.data || []);
+      // API returns { success: true, data: { items: [], page, totalItems, ... } }
+      const data = response.data?.data || response.data;
+      setCertificates(Array.isArray(data) ? data : (data?.items || []));
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to fetch certificates');
       setCertificates([]);

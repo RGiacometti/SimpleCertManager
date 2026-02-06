@@ -11,7 +11,9 @@ const useRequests = () => {
     setError(null);
     try {
       const response = await api.get('/requests');
-      setRequests(response.data?.data || response.data || []);
+      // API returns { success: true, data: { items: [], page, totalItems, ... } }
+      const data = response.data?.data || response.data;
+      setRequests(Array.isArray(data) ? data : (data?.items || []));
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to fetch requests');
       setRequests([]);
