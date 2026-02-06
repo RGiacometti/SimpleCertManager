@@ -20,7 +20,9 @@ const Requests = () => {
     const fetchCAConfig = async () => {
       try {
         const response = await api.get('/ca/config');
-        setCAConfig(response.data);
+        // Extract the actual config from the response
+        const config = response.data?.data || response.data;
+        setCAConfig(config);
       } catch (error) {
         console.error('Failed to fetch CA config:', error);
       }

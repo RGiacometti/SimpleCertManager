@@ -159,8 +159,8 @@ async function generateReport({ report_type, period_start, period_end, userId })
       })
     };
     
-    // Save report to database
-    const report = await pb.collection('compliance_reports').create({
+    // Prepare data for database
+    const reportRecord = {
       report_type,
       period_start: period_start.toISOString(),
       period_end: period_end.toISOString(),
@@ -172,13 +172,21 @@ async function generateReport({ report_type, period_start, period_end, userId })
       report_data: reportData,
       generated_by: userId,
       generated_at: new Date().toISOString()
-    });
+    };
+    
+    console.log(`Generating ${report_type} report with ${reportRecord.total_certificates} total certificates...`);
+    
+    // Save report to database
+    const report = await pb.collection('compliance_reports').create(reportRecord);
     
     console.log(`Report ${report.id} generated successfully`);
     
     return report;
   } catch (error) {
-    console.error('Failed to generate report:', error);
+    console.error('Failed to generate report:', error.message);
+    if (error.response?.data) {
+      console.error('PocketBase validation errors:', error.response.data);
+    }
     throw new Error(`Failed to generate report: ${error.message}`);
   }
 }

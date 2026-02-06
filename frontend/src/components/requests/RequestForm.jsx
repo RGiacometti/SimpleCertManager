@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -30,12 +30,23 @@ const RequestForm = ({ open, onClose, onSuccess, caConfig }) => {
     email: '',
     san_dns: [],
     san_ip: [],
-    key_size: caConfig?.default_key_size || 2048,
-    validity_days: caConfig?.default_validity_days || 365,
+    key_size: 2048,
+    validity_days: 365,
     notes: '',
   });
   const [newSanDns, setNewSanDns] = useState('');
   const [newSanIp, setNewSanIp] = useState('');
+
+  // Update form defaults when caConfig changes
+  useEffect(() => {
+    if (caConfig) {
+      setFormData(prev => ({
+        ...prev,
+        key_size: caConfig.default_key_size || 2048,
+        validity_days: caConfig.default_validity_days || 365,
+      }));
+    }
+  }, [caConfig]);
 
   const handleChange = (field) => (event) => {
     setFormData({ ...formData, [field]: event.target.value });
@@ -82,7 +93,18 @@ const RequestForm = ({ open, onClose, onSuccess, caConfig }) => {
     setError(null);
 
     try {
-      await api.post('/requests', formData);
+      // Add any pending DNS/IP values before submitting
+      const finalFormData = { ...formData };
+      
+      if (newSanDns.trim()) {
+        finalFormData.san_dns = [...formData.san_dns, newSanDns.trim()];
+      }
+      
+      if (newSanIp.trim()) {
+        finalFormData.san_ip = [...formData.san_ip, newSanIp.trim()];
+      }
+      
+      await api.post('/requests', finalFormData);
       onSuccess?.('Certificate request created successfully');
       onClose();
       // Reset form
@@ -100,6 +122,8 @@ const RequestForm = ({ open, onClose, onSuccess, caConfig }) => {
         validity_days: caConfig?.default_validity_days || 365,
         notes: '',
       });
+      setNewSanDns('');
+      setNewSanIp('');
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to create request');
     } finally {

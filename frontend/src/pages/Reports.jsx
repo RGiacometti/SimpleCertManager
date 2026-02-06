@@ -53,6 +53,27 @@ const Reports = () => {
     }
   };
 
+  const handleDownloadReport = async (reportId) => {
+    try {
+      const response = await api.get(`/reports/${reportId}/download`, {
+        responseType: 'blob'
+      });
+      
+      // Create a blob URL and trigger download
+      const blob = new Blob([response.data], { type: 'application/json' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `report-${reportId}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Failed to download report:', error);
+    }
+  };
+
   return (
     <Layout>
       <Box>
@@ -156,7 +177,7 @@ const Reports = () => {
                       variant="outlined"
                       startIcon={<Download />}
                       sx={{ mt: 2 }}
-                      onClick={() => window.open(`/api/reports/${report.id}/download`, '_blank')}
+                      onClick={() => handleDownloadReport(report.id)}
                     >
                       Download Report
                     </Button>

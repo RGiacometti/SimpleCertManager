@@ -62,7 +62,7 @@ const AuditLog = ({ logs, loading }) => {
                 />
               </TableCell>
               <TableCell>{log.entity_type}</TableCell>
-              <TableCell>{log.user?.email || 'System'}</TableCell>
+              <TableCell>{log.expand?.user?.email || log.user?.email || 'System'}</TableCell>
               <TableCell>
                 <Typography variant="body2" sx={{ fontFamily: 'monospace' }}>
                   {log.ip_address || '-'}

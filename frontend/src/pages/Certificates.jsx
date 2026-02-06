@@ -4,6 +4,7 @@ import Layout from '../components/layout/Layout';
 import CertificateList from '../components/certificates/CertificateList';
 import CertificateDetails from '../components/certificates/CertificateDetails';
 import useCertificates from '../hooks/useCertificates';
+import api from '../services/api';
 
 const Certificates = () => {
   const { certificates, loading, refetch } = useCertificates();
@@ -18,24 +19,23 @@ const Certificates = () => {
 
   const handleDownload = async (certificate) => {
     try {
-      const response = await fetch(
-        `${process.env.REACT_APP_API_URL}/certificates/${certificate.id}/download`,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`,
-          },
-        }
-      );
-      const blob = await response.blob();
+      const response = await api.get(`/certificates/${certificate.id}/download`, {
+        responseType: 'blob'
+      });
+      
+      const blob = new Blob([response.data], { type: 'application/x-pem-file' });
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
       link.download = `${certificate.common_name}.crt`;
       document.body.appendChild(link);
       link.click();
-      link.remove();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
       setSnackbar({ open: true, message: 'Certificate downloaded', severity: 'success' });
     } catch (error) {
+      console.error('Download failed:', error);
       setSnackbar({ open: true, message: 'Download failed', severity: 'error' });
     }
   };
