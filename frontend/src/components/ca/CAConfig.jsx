@@ -5,11 +5,11 @@ import {
   Typography,
   TextField,
   Button,
-  Grid,
   Box,
   Alert,
   MenuItem,
 } from '@mui/material';
+import Grid from '@mui/material/Grid';
 import { Settings, Save } from '@mui/icons-material';
 import api from '../../services/api';
 
@@ -97,7 +97,7 @@ const CAConfig = ({ caConfig, onUpdate }) => {
 
         <form onSubmit={handleSubmit}>
           <Grid container spacing={2}>
-            <Grid item xs={12} sm={6}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
                 required
                 fullWidth
@@ -110,7 +110,7 @@ const CAConfig = ({ caConfig, onUpdate }) => {
                 disabled={loading}
               />
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
                 required
                 fullWidth
@@ -125,7 +125,7 @@ const CAConfig = ({ caConfig, onUpdate }) => {
                 <MenuItem value={4096}>4096 bits</MenuItem>
               </TextField>
             </Grid>
-            <Grid item xs={12}>
+            <Grid size={12}>
               <TextField
                 fullWidth
                 label="CRL Distribution Point"
@@ -136,7 +136,7 @@ const CAConfig = ({ caConfig, onUpdate }) => {
                 disabled={loading}
               />
             </Grid>
-            <Grid item xs={12}>
+            <Grid size={12}>
               <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
                 <Button
                   type="submit"

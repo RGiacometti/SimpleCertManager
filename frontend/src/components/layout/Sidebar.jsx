@@ -19,7 +19,7 @@ import {
   Settings,
   Security,
 } from '@mui/icons-material';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router';
 
 const drawerWidth = 240;
 
