@@ -80,5 +80,5 @@ module.exports = {
   // Security
   MAX_PASSPHRASE_ATTEMPTS: 3,
   RATE_LIMIT_WINDOW_MS: 15 * 60 * 1000, // 15 minutes
-  RATE_LIMIT_MAX_REQUESTS: 100
+  RATE_LIMIT_MAX_REQUESTS: 1000 // Increased for development
 };
