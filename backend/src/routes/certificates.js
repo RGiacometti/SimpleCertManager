@@ -1,7 +1,7 @@
 const express = require('express');
 const { authenticate } = require('../middleware/auth');
 const { validateBody } = require('../middleware/validator');
-const { passphraseSchema, revocationSchema } = require('../utils/validators');
+const { passphraseSchema, revocationSchema, issuancePassphraseSchema } = require('../utils/validators');
 const {
   issueCertificate,
   revokeCertificate,
@@ -12,6 +12,7 @@ const {
   downloadCertificate,
   downloadPrivateKey,
   downloadCertificateBundle,
+  downloadCertificateChain,
   getCertificateStatistics
 } = require('../services/certificateService');
 const {
@@ -119,11 +120,16 @@ router.get('/:id', authenticate, async (req, res, next) => {
  * @desc    Issue a certificate from an approved request
  * @access  Private
  */
-router.post('/issue/:requestId', authenticate, validateBody(passphraseSchema), async (req, res, next) => {
+router.post('/issue/:requestId', authenticate, validateBody(issuancePassphraseSchema), async (req, res, next) => {
   try {
-    const { passphrase } = req.body;
+    const { passphrase, issuing_ca_id } = req.body;
     
-    const certificate = await issueCertificate(req.params.requestId, passphrase, req.userId);
+    const certificate = await issueCertificate(
+      req.params.requestId,
+      passphrase,
+      req.user.id,
+      issuing_ca_id || null
+    );
     
     // Log issuance
     await logIssueCertificate(
@@ -133,7 +139,8 @@ router.post('/issue/:requestId', authenticate, validateBody(passphraseSchema), a
       {
         serial_number: certificate.serial_number,
         common_name: certificate.common_name,
-        request_id: req.params.requestId
+        request_id: req.params.requestId,
+        issuing_ca_id: issuing_ca_id || 'root'
       }
     );
     
@@ -291,6 +298,32 @@ router.get('/:id/download-bundle', authenticate, async (req, res, next) => {
     res.setHeader('Content-Type', 'application/zip');
     res.setHeader('Content-Disposition', `attachment; filename="${certificate.serial_number}-bundle.zip"`);
     res.send(bundle);
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * @route   GET /api/certificates/:id/download-chain
+ * @desc    Download certificate chain (cert + ICA + Root)
+ * @access  Private
+ */
+router.get('/:id/download-chain', authenticate, async (req, res, next) => {
+  try {
+    const certificate = await getCertificate(req.params.id);
+    const chainPem = await downloadCertificateChain(req.params.id);
+    
+    // Log download
+    await logDownloadCertificate(
+      certificate.id,
+      req.user.id,
+      req.ip,
+      { serial_number: certificate.serial_number, type: 'chain' }
+    );
+    
+    res.setHeader('Content-Type', 'application/x-pem-file');
+    res.setHeader('Content-Disposition', `attachment; filename="${certificate.serial_number}-chain.pem"`);
+    res.send(chainPem);
   } catch (error) {
     next(error);
   }

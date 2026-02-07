@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Card,
   CardContent,
@@ -9,11 +9,37 @@ import {
   Button,
 } from '@mui/material';
 import Grid from '@mui/material/Grid';
-import { CheckCircle, Error, Security, Download } from '@mui/icons-material';
+import { CheckCircle, Error, Security, Download, AccountTree } from '@mui/icons-material';
 import DateDisplay from '../common/DateDisplay';
 import api from '../../services/api';
 
 const CAStatus = ({ caConfig }) => {
+  const [icaStats, setIcaStats] = useState({ total: 0, active: 0, revoked: 0, expired: 0 });
+
+  useEffect(() => {
+    const fetchICAStats = async () => {
+      try {
+        const response = await api.get('/intermediate-cas');
+        const data = response.data?.data || response.data;
+        const cas = Array.isArray(data) ? data : (data?.items || []);
+        const now = new Date();
+        setIcaStats({
+          total: cas.length,
+          active: cas.filter((c) => c.status === 'active' && new Date(c.not_after) > now).length,
+          revoked: cas.filter((c) => c.status === 'revoked').length,
+          expired: cas.filter((c) => c.status !== 'revoked' && new Date(c.not_after) < now).length,
+        });
+      } catch (err) {
+        // Silently fail - ICA stats are supplementary
+        console.error('Failed to fetch ICA stats:', err);
+      }
+    };
+
+    if (caConfig) {
+      fetchICAStats();
+    }
+  }, [caConfig]);
+
   if (!caConfig) {
     return (
       <Card>
@@ -116,6 +142,51 @@ const CAStatus = ({ caConfig }) => {
             <Typography variant="body1">{caConfig.default_key_size} bits</Typography>
           </Grid>
         </Grid>
+
+        {/* Intermediate CA Summary */}
+        {icaStats.total > 0 && (
+          <>
+            <Divider sx={{ my: 2 }} />
+
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+              <AccountTree color="info" />
+              <Typography variant="h6">Intermediate CAs</Typography>
+            </Box>
+
+            <Grid container spacing={2}>
+              <Grid size={{ xs: 6, sm: 3 }}>
+                <Typography variant="subtitle2" color="text.secondary">
+                  Total
+                </Typography>
+                <Typography variant="body1">{icaStats.total}</Typography>
+              </Grid>
+              <Grid size={{ xs: 6, sm: 3 }}>
+                <Typography variant="subtitle2" color="text.secondary">
+                  Active
+                </Typography>
+                <Typography variant="body1" color="success.main">
+                  {icaStats.active}
+                </Typography>
+              </Grid>
+              <Grid size={{ xs: 6, sm: 3 }}>
+                <Typography variant="subtitle2" color="text.secondary">
+                  Revoked
+                </Typography>
+                <Typography variant="body1" color="error.main">
+                  {icaStats.revoked}
+                </Typography>
+              </Grid>
+              <Grid size={{ xs: 6, sm: 3 }}>
+                <Typography variant="subtitle2" color="text.secondary">
+                  Expired
+                </Typography>
+                <Typography variant="body1" color="warning.main">
+                  {icaStats.expired}
+                </Typography>
+              </Grid>
+            </Grid>
+          </>
+        )}
 
         <Divider sx={{ my: 2 }} />
 

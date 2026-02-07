@@ -2,7 +2,8 @@ const forge = require('node-forge');
 const {
   generateKeyPair,
   calculateFingerprint,
-  clearSensitiveData
+  clearSensitiveData,
+  decryptPrivateKey
 } = require('../utils/crypto');
 const {
   saveCertificate,
@@ -10,12 +11,15 @@ const {
   loadCertificate,
   loadPrivateKey,
   loadCAcertificate,
-  createCertificateBundle
+  createCertificateBundle,
+  loadIntermediateCACertificate,
+  loadIntermediateCAChain,
+  loadIntermediateCAPrivateKey
 } = require('../utils/fileManager');
 const { getPocketBase } = require('../config/database');
 const { getCAPrivateKey, getNextSerialNumber, getCACertificate } = require('./caService');
 const { generateCRL } = require('./crlService');
-const { CERT_STATUS, REQUEST_STATUS, REVOCATION_REASONS } = require('../config/constants');
+const { CERT_STATUS, REQUEST_STATUS, REVOCATION_REASONS, ICA_STATUS } = require('../config/constants');
 
 /**
  * Certificate management service
@@ -24,11 +28,12 @@ const { CERT_STATUS, REQUEST_STATUS, REVOCATION_REASONS } = require('../config/c
 /**
  * Issue a certificate from an approved request
  * @param {string} requestId - Certificate request ID
- * @param {string} passphrase - CA passphrase
+ * @param {string} passphrase - CA passphrase (Root CA or ICA depending on icaId)
  * @param {string} userId - User ID who is issuing the certificate
+ * @param {string|null} icaId - Optional Intermediate CA ID. If provided, signs with ICA instead of Root CA
  * @returns {Promise<Object>} Issued certificate
  */
-async function issueCertificate(requestId, passphrase, userId) {
+async function issueCertificate(requestId, passphrase, userId, icaId = null) {
   try {
     const pb = getPocketBase();
     
@@ -42,10 +47,32 @@ async function issueCertificate(requestId, passphrase, userId) {
     
     console.log(`Issuing certificate for request ${requestId}...`);
     
-    // Get CA private key (will throw if passphrase is wrong)
-    const caPrivateKey = await getCAPrivateKey(passphrase);
-    const caCertPem = await getCACertificate();
-    const caCert = forge.pki.certificateFromPem(caCertPem);
+    // Determine signing CA (Root or Intermediate)
+    let signingPrivateKey;
+    let signingCert;
+    let signingCertPem;
+    
+    if (icaId) {
+      // Signing with Intermediate CA
+      console.log(`Using Intermediate CA ${icaId} for signing...`);
+      
+      // Verify ICA exists and is active
+      const ica = await pb.collection('intermediate_cas').getOne(icaId);
+      if (ica.status !== ICA_STATUS.ACTIVE) {
+        throw new Error('Intermediate CA is not active. Cannot sign certificates.');
+      }
+      
+      // Get ICA private key (will throw if passphrase is wrong)
+      const encryptedICAKey = await loadIntermediateCAPrivateKey(icaId);
+      signingPrivateKey = decryptPrivateKey(encryptedICAKey, passphrase);
+      signingCertPem = await loadIntermediateCACertificate(icaId);
+      signingCert = forge.pki.certificateFromPem(signingCertPem);
+    } else {
+      // Signing with Root CA (backward compatible)
+      signingPrivateKey = await getCAPrivateKey(passphrase);
+      signingCertPem = await getCACertificate();
+      signingCert = forge.pki.certificateFromPem(signingCertPem);
+    }
     
     // Generate key pair for the certificate
     console.log('Generating certificate key pair...');
@@ -94,8 +121,8 @@ async function issueCertificate(requestId, passphrase, userId) {
     
     cert.setSubject(subjectAttrs);
     
-    // Set issuer (CA)
-    cert.setIssuer(caCert.subject.attributes);
+    // Set issuer (signing CA — Root or Intermediate)
+    cert.setIssuer(signingCert.subject.attributes);
     
     // Set extensions
     const extensions = [
@@ -120,7 +147,7 @@ async function issueCertificate(requestId, passphrase, userId) {
       },
       {
         name: 'authorityKeyIdentifier',
-        keyIdentifier: caCert.generateSubjectKeyIdentifier().getBytes()
+        keyIdentifier: signingCert.generateSubjectKeyIdentifier().getBytes()
       }
     ];
     
@@ -162,13 +189,12 @@ async function issueCertificate(requestId, passphrase, userId) {
     
     cert.setExtensions(extensions);
     
-    // Sign certificate with CA private key
+    // Sign certificate with signing CA private key
     console.log('Signing certificate...');
-    cert.sign(caPrivateKey, forge.md.sha256.create());
+    cert.sign(signingPrivateKey, forge.md.sha256.create());
     
-    // Clear CA private key from memory
-    clearSensitiveData(caPrivateKey);
-    clearSensitiveData(passphrase);
+    // Clear signing private key from memory
+    clearSensitiveData(signingPrivateKey);
     
     // Convert to PEM
     const certPem = forge.pki.certificateToPem(cert);
@@ -188,13 +214,13 @@ async function issueCertificate(requestId, passphrase, userId) {
     });
     
     const issuerData = {};
-    caCert.issuer.attributes.forEach(attr => {
+    signingCert.subject.attributes.forEach(attr => {
       issuerData[attr.shortName || attr.name] = attr.value;
     });
     
     // Save certificate to database
     console.log('Saving certificate to database...');
-    const certificate = await pb.collection('certificates').create({
+    const certRecord = {
       request_id: requestId,
       serial_number: serialNumber,
       common_name: request.common_name,
@@ -209,14 +235,21 @@ async function issueCertificate(requestId, passphrase, userId) {
       status: CERT_STATUS.ACTIVE,
       issued_at: new Date().toISOString(),
       issued_by: userId
-    });
+    };
+    
+    // Set issuing CA ID if signed by an Intermediate CA
+    if (icaId) {
+      certRecord.issuing_ca_id = icaId;
+    }
+    
+    const certificate = await pb.collection('certificates').create(certRecord);
     
     // Update request status to issued
     await pb.collection('certificate_requests').update(requestId, {
       status: REQUEST_STATUS.ISSUED
     });
     
-    console.log(`Certificate ${serialNumber} issued successfully`);
+    console.log(`Certificate ${serialNumber} issued successfully${icaId ? ` (signed by ICA ${icaId})` : ' (signed by Root CA)'}`);
     
     return certificate;
   } catch (error) {
@@ -555,6 +588,43 @@ async function getCertificateStatistics() {
   }
 }
 
+/**
+ * Download certificate chain (cert + ICA cert + Root cert)
+ * @param {string} certificateId - Certificate ID
+ * @returns {Promise<string>} Full chain PEM
+ */
+async function downloadCertificateChain(certificateId) {
+  try {
+    const certificate = await getCertificate(certificateId);
+    
+    // Start with the end-entity certificate
+    let chainPem = certificate.certificate_pem;
+    
+    // If signed by an Intermediate CA, add ICA cert
+    if (certificate.issuing_ca_id) {
+      try {
+        const icaCertPem = await loadIntermediateCACertificate(certificate.issuing_ca_id);
+        chainPem += '\n' + icaCertPem;
+      } catch (error) {
+        console.warn('Failed to load ICA certificate for chain:', error.message);
+      }
+    }
+    
+    // Always add Root CA cert at the end
+    try {
+      const rootCertPem = await loadCAcertificate();
+      chainPem += '\n' + rootCertPem;
+    } catch (error) {
+      console.warn('Failed to load Root CA certificate for chain:', error.message);
+    }
+    
+    return chainPem;
+  } catch (error) {
+    console.error('Failed to download certificate chain:', error);
+    throw error;
+  }
+}
+
 module.exports = {
   issueCertificate,
   revokeCertificate,
@@ -565,6 +635,7 @@ module.exports = {
   downloadCertificate,
   downloadPrivateKey,
   downloadCertificateBundle,
+  downloadCertificateChain,
   updateCertificateStatuses,
   getCertificateStatistics
 };

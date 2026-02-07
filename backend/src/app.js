@@ -16,6 +16,7 @@ const authRoutes = require('./routes/auth');
 const requestRoutes = require('./routes/requests');
 const certificateRoutes = require('./routes/certificates');
 const caRoutes = require('./routes/ca');
+const intermediateCAsRoutes = require('./routes/intermediateCAs');
 const reportRoutes = require('./routes/reports');
 const auditRoutes = require('./routes/audit');
 
@@ -34,6 +35,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/requests', requestRoutes);
 app.use('/api/certificates', certificateRoutes);
 app.use('/api/ca', caRoutes);
+app.use('/api/intermediate-cas', intermediateCAsRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/audit', auditRoutes);
 
@@ -48,6 +50,7 @@ app.get('/api', (req, res) => {
       requests: '/api/requests',
       certificates: '/api/certificates',
       ca: '/api/ca',
+      'intermediate-cas': '/api/intermediate-cas',
       reports: '/api/reports',
       audit: '/api/audit'
     },

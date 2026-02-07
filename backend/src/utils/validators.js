@@ -92,6 +92,10 @@ const certificateRequestSchema = Joi.object({
   notes: Joi.string()
     .max(1000)
     .allow('', null)
+    .optional(),
+  
+  issuing_ca_id: Joi.string()
+    .allow('', null)
     .optional()
 });
 
@@ -293,12 +297,15 @@ const auditFilterSchema = Joi.object({
       'download_certificate',
       'view_certificate',
       'initialize_ca',
-      'update_ca_config'
+      'update_ca_config',
+      'create_intermediate_ca',
+      'revoke_intermediate_ca',
+      'update_intermediate_ca'
     )
     .optional(),
   
   entity_type: Joi.string()
-    .valid('certificate_request', 'certificate', 'ca_config')
+    .valid('certificate_request', 'certificate', 'ca_config', 'intermediate_ca')
     .optional(),
   
   user_id: Joi.string()
@@ -451,6 +458,209 @@ function sanitizeFilename(filename) {
   return filename.replace(/[^a-zA-Z0-9._-]/g, '_');
 }
 
+/**
+ * Validate Intermediate CA creation data
+ */
+const intermediateCACreationSchema = Joi.object({
+  name: Joi.string()
+    .min(1)
+    .max(255)
+    .required()
+    .messages({
+      'string.empty': 'ICA name is required',
+      'string.max': 'ICA name must not exceed 255 characters'
+    }),
+  
+  description: Joi.string()
+    .max(1000)
+    .allow('', null)
+    .optional(),
+  
+  common_name: Joi.string()
+    .min(1)
+    .max(255)
+    .required()
+    .messages({
+      'string.empty': 'Common name is required',
+      'string.max': 'Common name must not exceed 255 characters'
+    }),
+  
+  organization: Joi.string()
+    .max(255)
+    .allow('', null)
+    .optional(),
+  
+  organizational_unit: Joi.string()
+    .max(255)
+    .allow('', null)
+    .optional(),
+  
+  country: Joi.string()
+    .length(2)
+    .uppercase()
+    .allow('', null)
+    .optional()
+    .messages({
+      'string.length': 'Country code must be exactly 2 characters'
+    }),
+  
+  state: Joi.string()
+    .max(255)
+    .allow('', null)
+    .optional(),
+  
+  locality: Joi.string()
+    .max(255)
+    .allow('', null)
+    .optional(),
+  
+  email: Joi.string()
+    .email()
+    .allow('', null)
+    .optional(),
+  
+  key_size: Joi.number()
+    .valid(2048, 4096)
+    .default(4096)
+    .messages({
+      'any.only': 'Key size must be 2048 or 4096'
+    }),
+  
+  validity_years: Joi.number()
+    .integer()
+    .min(1)
+    .max(10)
+    .default(5)
+    .messages({
+      'number.min': 'Validity years must be at least 1',
+      'number.max': 'Validity years must not exceed 10'
+    }),
+  
+  max_validity_days: Joi.number()
+    .integer()
+    .min(1)
+    .max(825)
+    .default(397)
+    .messages({
+      'number.min': 'Max validity days must be at least 1',
+      'number.max': 'Max validity days must not exceed 825'
+    }),
+  
+  default_validity_days: Joi.number()
+    .integer()
+    .min(1)
+    .max(825)
+    .default(365)
+    .messages({
+      'number.min': 'Default validity days must be at least 1',
+      'number.max': 'Default validity days must not exceed 825'
+    }),
+  
+  default_key_size: Joi.number()
+    .valid(2048, 4096)
+    .default(2048),
+  
+  crl_distribution_point: Joi.string()
+    .uri()
+    .allow('', null)
+    .optional(),
+  
+  root_passphrase: Joi.string()
+    .min(1)
+    .required()
+    .messages({
+      'string.empty': 'Root CA passphrase is required'
+    }),
+  
+  ica_passphrase: Joi.string()
+    .min(12)
+    .required()
+    .messages({
+      'string.min': 'ICA passphrase must be at least 12 characters',
+      'string.empty': 'ICA passphrase is required'
+    }),
+  
+  ica_passphrase_confirm: Joi.string()
+    .valid(Joi.ref('ica_passphrase'))
+    .required()
+    .messages({
+      'any.only': 'ICA passphrase confirmation must match',
+      'string.empty': 'ICA passphrase confirmation is required'
+    })
+});
+
+/**
+ * Validate Intermediate CA update data
+ */
+const intermediateCAUpdateSchema = Joi.object({
+  name: Joi.string()
+    .min(1)
+    .max(255)
+    .optional(),
+  
+  description: Joi.string()
+    .max(1000)
+    .allow('', null)
+    .optional(),
+  
+  default_validity_days: Joi.number()
+    .integer()
+    .min(1)
+    .max(825)
+    .optional(),
+  
+  default_key_size: Joi.number()
+    .valid(2048, 4096)
+    .optional(),
+  
+  crl_distribution_point: Joi.string()
+    .uri()
+    .allow('', null)
+    .optional()
+}).min(1); // At least one field must be provided
+
+/**
+ * Validate Intermediate CA revocation data
+ */
+const intermediateCARevocationSchema = Joi.object({
+  root_passphrase: Joi.string()
+    .min(1)
+    .required()
+    .messages({
+      'string.empty': 'Root CA passphrase is required'
+    }),
+  
+  reason: Joi.string()
+    .valid(
+      'unspecified',
+      'keyCompromise',
+      'caCompromise',
+      'affiliationChanged',
+      'superseded',
+      'cessationOfOperation'
+    )
+    .default('unspecified')
+    .messages({
+      'any.only': 'Invalid revocation reason'
+    })
+});
+
+/**
+ * Validate passphrase with optional issuing CA ID
+ */
+const issuancePassphraseSchema = Joi.object({
+  passphrase: Joi.string()
+    .min(1)
+    .required()
+    .messages({
+      'string.empty': 'Passphrase is required'
+    }),
+  
+  issuing_ca_id: Joi.string()
+    .allow('', null)
+    .optional()
+});
+
 module.exports = {
   // Schemas
   certificateRequestSchema,
@@ -463,6 +673,10 @@ module.exports = {
   paginationSchema,
   certificateFilterSchema,
   requestFilterSchema,
+  intermediateCACreationSchema,
+  intermediateCAUpdateSchema,
+  intermediateCARevocationSchema,
+  issuancePassphraseSchema,
   
   // Validation functions
   validate,

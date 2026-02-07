@@ -396,6 +396,18 @@ async function getCAStatus() {
     const pb = getPocketBase();
     const totalCerts = await pb.collection('certificates').getFullList();
     
+    // Get intermediate CA count
+    let intermediateCACount = 0;
+    let activeIntermediateCACount = 0;
+    try {
+      const allICAs = await pb.collection('intermediate_cas').getFullList();
+      intermediateCACount = allICAs.length;
+      activeIntermediateCACount = allICAs.filter(ica => ica.status === 'active').length;
+    } catch (error) {
+      // Collection may not exist yet in older installations
+      console.warn('Could not fetch intermediate CAs:', error.message);
+    }
+    
     return {
       initialized: true,
       ca_name: config.ca_name,
@@ -408,7 +420,9 @@ async function getCAStatus() {
       total_certificates_issued: totalCerts.length,
       serial_number: config.ca_serial_number,
       default_validity_days: config.default_validity_days,
-      default_key_size: config.default_key_size
+      default_key_size: config.default_key_size,
+      intermediate_ca_count: intermediateCACount,
+      active_intermediate_ca_count: activeIntermediateCACount
     };
   } catch (error) {
     console.error('Failed to get CA status:', error);

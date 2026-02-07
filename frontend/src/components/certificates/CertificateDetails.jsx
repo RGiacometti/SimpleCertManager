@@ -12,9 +12,10 @@ import {
   IconButton,
 } from '@mui/material';
 import Grid from '@mui/material/Grid';
-import { Close, ContentCopy } from '@mui/icons-material';
+import { Close, ContentCopy, Download, Link as LinkIcon } from '@mui/icons-material';
 import StatusChip from '../common/StatusChip';
 import DateDisplay from '../common/DateDisplay';
+import api from '../../services/api';
 
 const CertificateDetails = ({ certificate, open, onClose }) => {
   if (!certificate) return null;
@@ -33,6 +34,32 @@ const CertificateDetails = ({ certificate, open, onClose }) => {
     if (isExpired) return 'expired';
     if (isExpiringSoon) return 'expiring_soon';
     return 'active';
+  };
+
+  const handleDownloadChain = async () => {
+    try {
+      const response = await api.get(`/certificates/${certificate.id}/download-chain`, {
+        responseType: 'blob',
+      });
+      const blob = new Blob([response.data], { type: 'application/x-pem-file' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${certificate.common_name}-chain.pem`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Failed to download chain:', error);
+    }
+  };
+
+  const getIssuingCALabel = () => {
+    if (certificate.issuing_ca_id) {
+      return certificate.issuing_ca_name || `Intermediate CA (${certificate.issuing_ca_id})`;
+    }
+    return 'Root CA';
   };
 
   return (
@@ -173,6 +200,18 @@ const CertificateDetails = ({ certificate, open, onClose }) => {
             <DateDisplay date={certificate.issued_at} format="PPpp" showRelative />
           </Grid>
 
+          <Grid size={{ xs: 12, sm: 6 }}>
+            <Typography variant="subtitle2" color="text.secondary">
+              Issued By
+            </Typography>
+            <Chip
+              label={getIssuingCALabel()}
+              size="small"
+              color={certificate.issuing_ca_id ? 'info' : 'default'}
+              variant="outlined"
+            />
+          </Grid>
+
           {certificate.revoked_at && (
             <>
               <Grid size={{ xs: 12, sm: 6 }}>
@@ -213,6 +252,13 @@ const CertificateDetails = ({ certificate, open, onClose }) => {
         </Grid>
       </DialogContent>
       <DialogActions>
+        <Button
+          startIcon={<LinkIcon />}
+          onClick={handleDownloadChain}
+          size="small"
+        >
+          Download Chain
+        </Button>
         <Button onClick={onClose}>Close</Button>
       </DialogActions>
     </Dialog>

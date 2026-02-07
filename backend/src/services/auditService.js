@@ -371,6 +371,48 @@ async function getAuditStatistics(startDate, endDate) {
   }
 }
 
+/**
+ * Log Intermediate CA creation
+ */
+async function logCreateIntermediateCA(icaId, userId, ipAddress, details = {}) {
+  return logAudit({
+    action: AUDIT_ACTIONS.CREATE_INTERMEDIATE_CA,
+    entityType: ENTITY_TYPES.INTERMEDIATE_CA,
+    entityId: icaId,
+    userId,
+    ipAddress,
+    details
+  });
+}
+
+/**
+ * Log Intermediate CA revocation
+ */
+async function logRevokeIntermediateCA(icaId, userId, ipAddress, details = {}) {
+  return logAudit({
+    action: AUDIT_ACTIONS.REVOKE_INTERMEDIATE_CA,
+    entityType: ENTITY_TYPES.INTERMEDIATE_CA,
+    entityId: icaId,
+    userId,
+    ipAddress,
+    details
+  });
+}
+
+/**
+ * Log Intermediate CA update
+ */
+async function logUpdateIntermediateCA(icaId, userId, ipAddress, details = {}) {
+  return logAudit({
+    action: AUDIT_ACTIONS.UPDATE_INTERMEDIATE_CA,
+    entityType: ENTITY_TYPES.INTERMEDIATE_CA,
+    entityId: icaId,
+    userId,
+    ipAddress,
+    details
+  });
+}
+
 module.exports = {
   logAudit,
   logCreateRequest,
@@ -383,6 +425,9 @@ module.exports = {
   logViewCertificate,
   logInitializeCA,
   logUpdateCAConfig,
+  logCreateIntermediateCA,
+  logRevokeIntermediateCA,
+  logUpdateIntermediateCA,
   getAuditLogs,
   getAuditLogById,
   getEntityAuditLogs,

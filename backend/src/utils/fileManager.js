@@ -3,9 +3,11 @@ const fsSync = require('fs');
 const path = require('path');
 const {
   CA_PATH,
+  INTERMEDIATE_CA_PATH,
   CERTIFICATES_PATH,
   PRIVATE_KEYS_PATH,
-  CRL_PATH
+  CRL_PATH,
+  INTERMEDIATE_CRL_PATH
 } = require('../config/constants');
 
 /**
@@ -328,6 +330,199 @@ function fileExists(filePath) {
   return fsSync.existsSync(filePath);
 }
 
+// ============================================================
+// Intermediate CA file operations
+// ============================================================
+
+/**
+ * Ensure Intermediate CA directories exist
+ */
+async function ensureICADirectories() {
+  await ensureDirectory(INTERMEDIATE_CA_PATH);
+  await ensureDirectory(INTERMEDIATE_CRL_PATH);
+}
+
+/**
+ * Get the directory path for a specific Intermediate CA
+ * @param {string} icaId - Intermediate CA ID
+ * @returns {string} Directory path
+ */
+function getICADirectory(icaId) {
+  return path.join(INTERMEDIATE_CA_PATH, icaId);
+}
+
+/**
+ * Save Intermediate CA certificate
+ * @param {string} icaId - Intermediate CA ID
+ * @param {string} certPem - ICA certificate in PEM format
+ * @returns {Promise<string>} File path
+ */
+async function saveIntermediateCACertificate(icaId, certPem) {
+  const icaDir = getICADirectory(icaId);
+  await ensureDirectory(icaDir);
+  const filePath = path.join(icaDir, 'ica-cert.pem');
+  await fs.writeFile(filePath, certPem, { mode: 0o644 });
+  return filePath;
+}
+
+/**
+ * Save Intermediate CA private key (encrypted)
+ * @param {string} icaId - Intermediate CA ID
+ * @param {string} encryptedKeyPem - Encrypted private key in PEM format
+ * @returns {Promise<string>} File path
+ */
+async function saveIntermediateCAPrivateKey(icaId, encryptedKeyPem) {
+  const icaDir = getICADirectory(icaId);
+  await ensureDirectory(icaDir);
+  const filePath = path.join(icaDir, 'ica-key.pem');
+  await fs.writeFile(filePath, encryptedKeyPem, { mode: 0o600 });
+  return filePath;
+}
+
+/**
+ * Save Intermediate CA chain (ICA cert + Root cert)
+ * @param {string} icaId - Intermediate CA ID
+ * @param {string} chainPem - Full chain in PEM format
+ * @returns {Promise<string>} File path
+ */
+async function saveIntermediateCAChain(icaId, chainPem) {
+  const icaDir = getICADirectory(icaId);
+  await ensureDirectory(icaDir);
+  const filePath = path.join(icaDir, 'chain.pem');
+  await fs.writeFile(filePath, chainPem, { mode: 0o644 });
+  return filePath;
+}
+
+/**
+ * Load Intermediate CA certificate
+ * @param {string} icaId - Intermediate CA ID
+ * @returns {Promise<string>} ICA certificate in PEM format
+ */
+async function loadIntermediateCACertificate(icaId) {
+  const filePath = path.join(getICADirectory(icaId), 'ica-cert.pem');
+  try {
+    return await fs.readFile(filePath, 'utf8');
+  } catch (error) {
+    if (error.code === 'ENOENT') {
+      throw new Error(`Intermediate CA certificate not found for ID: ${icaId}`);
+    }
+    throw error;
+  }
+}
+
+/**
+ * Load Intermediate CA private key (encrypted)
+ * @param {string} icaId - Intermediate CA ID
+ * @returns {Promise<string>} Encrypted ICA private key in PEM format
+ */
+async function loadIntermediateCAPrivateKey(icaId) {
+  const filePath = path.join(getICADirectory(icaId), 'ica-key.pem');
+  try {
+    return await fs.readFile(filePath, 'utf8');
+  } catch (error) {
+    if (error.code === 'ENOENT') {
+      throw new Error(`Intermediate CA private key not found for ID: ${icaId}`);
+    }
+    throw error;
+  }
+}
+
+/**
+ * Load Intermediate CA chain (ICA cert + Root cert)
+ * @param {string} icaId - Intermediate CA ID
+ * @returns {Promise<string>} Full chain in PEM format
+ */
+async function loadIntermediateCAChain(icaId) {
+  const filePath = path.join(getICADirectory(icaId), 'chain.pem');
+  try {
+    return await fs.readFile(filePath, 'utf8');
+  } catch (error) {
+    if (error.code === 'ENOENT') {
+      throw new Error(`Intermediate CA chain not found for ID: ${icaId}`);
+    }
+    throw error;
+  }
+}
+
+/**
+ * Check if Intermediate CA files exist
+ * @param {string} icaId - Intermediate CA ID
+ * @returns {Promise<boolean>} True if ICA files exist
+ */
+async function isIntermediateCAInitialized(icaId) {
+  try {
+    const icaDir = getICADirectory(icaId);
+    const certPath = path.join(icaDir, 'ica-cert.pem');
+    const keyPath = path.join(icaDir, 'ica-key.pem');
+    
+    await fs.access(certPath);
+    await fs.access(keyPath);
+    
+    return true;
+  } catch (error) {
+    return false;
+  }
+}
+
+/**
+ * Delete Intermediate CA files
+ * @param {string} icaId - Intermediate CA ID
+ */
+async function deleteIntermediateCAFiles(icaId) {
+  const icaDir = getICADirectory(icaId);
+  
+  const files = ['ica-cert.pem', 'ica-key.pem', 'chain.pem'];
+  
+  for (const file of files) {
+    try {
+      await fs.unlink(path.join(icaDir, file));
+    } catch (error) {
+      if (error.code !== 'ENOENT') {
+        console.error(`Failed to delete ICA file ${file}: ${error.message}`);
+      }
+    }
+  }
+  
+  // Try to remove the directory
+  try {
+    await fs.rmdir(icaDir);
+  } catch (error) {
+    if (error.code !== 'ENOENT') {
+      console.error(`Failed to remove ICA directory: ${error.message}`);
+    }
+  }
+}
+
+/**
+ * Save Intermediate CA CRL
+ * @param {string} icaId - Intermediate CA ID
+ * @param {string} crlData - CRL data
+ * @returns {Promise<string>} File path
+ */
+async function saveIntermediateCRL(icaId, crlData) {
+  await ensureDirectory(INTERMEDIATE_CRL_PATH);
+  const filePath = path.join(INTERMEDIATE_CRL_PATH, `${icaId}.crl`);
+  await fs.writeFile(filePath, crlData, { mode: 0o644 });
+  return filePath;
+}
+
+/**
+ * Load Intermediate CA CRL
+ * @param {string} icaId - Intermediate CA ID
+ * @returns {Promise<string|null>} CRL data or null if not found
+ */
+async function loadIntermediateCRL(icaId) {
+  const filePath = path.join(INTERMEDIATE_CRL_PATH, `${icaId}.crl`);
+  try {
+    return await fs.readFile(filePath, 'utf8');
+  } catch (error) {
+    if (error.code === 'ENOENT') {
+      return null;
+    }
+    throw error;
+  }
+}
+
 module.exports = {
   ensureDirectory,
   initializeStorage,
@@ -346,5 +541,17 @@ module.exports = {
   createCertificateBundle,
   getFileStats,
   listCertificates,
-  fileExists
+  fileExists,
+  // Intermediate CA file operations
+  ensureICADirectories,
+  saveIntermediateCACertificate,
+  saveIntermediateCAPrivateKey,
+  saveIntermediateCAChain,
+  loadIntermediateCACertificate,
+  loadIntermediateCAPrivateKey,
+  loadIntermediateCAChain,
+  isIntermediateCAInitialized,
+  deleteIntermediateCAFiles,
+  saveIntermediateCRL,
+  loadIntermediateCRL
 };

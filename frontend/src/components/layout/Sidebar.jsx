@@ -18,6 +18,7 @@ import {
   History,
   Settings,
   Security,
+  AccountTree,
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router';
 
@@ -27,6 +28,7 @@ const menuItems = [
   { text: 'Dashboard', icon: <Dashboard />, path: '/' },
   { text: 'Certificates', icon: <Description />, path: '/certificates' },
   { text: 'Requests', icon: <Assignment />, path: '/requests' },
+  { text: 'Intermediate CAs', icon: <AccountTree />, path: '/intermediate-cas' },
   { text: 'Reports', icon: <Assessment />, path: '/reports' },
   { text: 'Audit Log', icon: <History />, path: '/audit' },
   { divider: true },

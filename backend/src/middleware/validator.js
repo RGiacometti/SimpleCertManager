@@ -111,11 +111,17 @@ const schemas = {
     san_ip: Joi.array().items(Joi.string().ip()).optional(),
     key_size: Joi.number().valid(2048, 4096).default(2048),
     validity_days: Joi.number().integer().min(1).max(3650).default(365),
-    notes: Joi.string().optional().max(1000)
+    notes: Joi.string().optional().max(1000),
+    issuing_ca_id: Joi.string().optional().allow('', null)
   }),
   
   passphrase: Joi.object({
     passphrase: Joi.string().required().min(8)
+  }),
+  
+  issuancePassphrase: Joi.object({
+    passphrase: Joi.string().required().min(8),
+    issuing_ca_id: Joi.string().optional().allow('', null)
   }),
   
   revokeCertificate: Joi.object({

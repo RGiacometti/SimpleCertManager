@@ -74,6 +74,18 @@ const CertificateCard = ({ certificate, onView, onDownload, onRevoke, onRenew })
           </Box>
         )}
 
+        <Box sx={{ mb: 2 }}>
+          <Typography variant="body2" color="text.secondary" gutterBottom>
+            Issued By
+          </Typography>
+          <Chip
+            label={certificate.issuing_ca_name || (certificate.issuing_ca_id ? 'Intermediate CA' : 'Root CA')}
+            size="small"
+            color={certificate.issuing_ca_id ? 'info' : 'default'}
+            variant="outlined"
+          />
+        </Box>
+
         <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1, mt: 2 }}>
           <Tooltip title="View Details">
             <IconButton size="small" onClick={() => onView(certificate)}>

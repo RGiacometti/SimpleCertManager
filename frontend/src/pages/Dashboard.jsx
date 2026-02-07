@@ -12,6 +12,7 @@ import {
   Warning,
   CheckCircle,
   Assignment,
+  AccountTree,
 } from '@mui/icons-material';
 import Layout from '../components/layout/Layout';
 import api from '../services/api';
@@ -22,6 +23,8 @@ const Dashboard = () => {
     activeCertificates: 0,
     expiringSoon: 0,
     pendingRequests: 0,
+    totalICAs: 0,
+    activeICAs: 0,
   });
   const [loading, setLoading] = useState(true);
 
@@ -32,26 +35,33 @@ const Dashboard = () => {
   const fetchStats = async () => {
     setLoading(true);
     try {
-      const [certsResponse, requestsResponse, expiringResponse] = await Promise.all([
+      const [certsResponse, requestsResponse, expiringResponse, icaResponse] = await Promise.all([
         api.get('/certificates'),
         api.get('/requests'),
         api.get('/certificates/expiring'),
+        api.get('/intermediate-cas').catch(() => ({ data: { data: [] } })),
       ]);
 
       // Extract data from paginated responses
       const certsData = certsResponse.data?.data || certsResponse.data;
       const requestsData = requestsResponse.data?.data || requestsResponse.data;
       const expiringData = expiringResponse.data?.data || expiringResponse.data;
+      const icaData = icaResponse.data?.data || icaResponse.data;
 
       const certificates = Array.isArray(certsData) ? certsData : (certsData?.items || []);
       const requests = Array.isArray(requestsData) ? requestsData : (requestsData?.items || []);
       const expiring = Array.isArray(expiringData) ? expiringData : (expiringData?.items || []);
+      const icas = Array.isArray(icaData) ? icaData : (icaData?.items || []);
+
+      const now = new Date();
 
       setStats({
         totalCertificates: certificates.length,
         activeCertificates: certificates.filter((c) => c.status === 'active').length,
         expiringSoon: expiring.length,
         pendingRequests: requests.filter((r) => r.status === 'pending').length,
+        totalICAs: icas.length,
+        activeICAs: icas.filter((c) => c.status === 'active' && new Date(c.not_after) > now).length,
       });
     } catch (error) {
       console.error('Failed to fetch stats:', error);
@@ -131,13 +141,31 @@ const Dashboard = () => {
             />
           </Grid>
 
+          {/* Intermediate CA Stats */}
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+            <StatCard
+              title="Intermediate CAs"
+              value={stats.totalICAs}
+              icon={<AccountTree color="primary" />}
+              color="primary"
+            />
+          </Grid>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+            <StatCard
+              title="Active ICAs"
+              value={stats.activeICAs}
+              icon={<AccountTree color="success" />}
+              color="success"
+            />
+          </Grid>
+
           <Grid size={12}>
             <Paper sx={{ p: 3 }}>
               <Typography variant="h6" gutterBottom>
                 Quick Actions
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                Use the navigation menu to manage certificates, review requests, generate reports, or configure your CA.
+                Use the navigation menu to manage certificates, review requests, manage intermediate CAs, generate reports, or configure your CA.
               </Typography>
             </Paper>
           </Grid>

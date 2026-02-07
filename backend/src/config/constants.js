@@ -14,9 +14,11 @@ module.exports = {
   // Storage paths
   STORAGE_PATH,
   CA_PATH: path.join(STORAGE_PATH, 'ca'),
+  INTERMEDIATE_CA_PATH: path.join(STORAGE_PATH, 'ca', 'intermediate'),
   CERTIFICATES_PATH: path.join(STORAGE_PATH, 'certificates'),
   PRIVATE_KEYS_PATH: path.join(STORAGE_PATH, 'private_keys'),
   CRL_PATH: path.join(STORAGE_PATH, 'crl'),
+  INTERMEDIATE_CRL_PATH: path.join(STORAGE_PATH, 'crl', 'intermediate'),
   
   // Certificate defaults
   DEFAULT_KEY_SIZE: 2048,
@@ -59,14 +61,25 @@ module.exports = {
     DOWNLOAD_CERTIFICATE: 'download_certificate',
     VIEW_CERTIFICATE: 'view_certificate',
     INITIALIZE_CA: 'initialize_ca',
-    UPDATE_CA_CONFIG: 'update_ca_config'
+    UPDATE_CA_CONFIG: 'update_ca_config',
+    CREATE_INTERMEDIATE_CA: 'create_intermediate_ca',
+    REVOKE_INTERMEDIATE_CA: 'revoke_intermediate_ca',
+    UPDATE_INTERMEDIATE_CA: 'update_intermediate_ca'
   },
   
   // Entity types
   ENTITY_TYPES: {
     CERTIFICATE_REQUEST: 'certificate_request',
     CERTIFICATE: 'certificate',
-    CA_CONFIG: 'ca_config'
+    CA_CONFIG: 'ca_config',
+    INTERMEDIATE_CA: 'intermediate_ca'
+  },
+  
+  // Intermediate CA status
+  ICA_STATUS: {
+    ACTIVE: 'active',
+    REVOKED: 'revoked',
+    EXPIRED: 'expired'
   },
   
   // Report types

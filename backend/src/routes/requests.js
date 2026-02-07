@@ -203,6 +203,7 @@ router.delete('/:id', authenticate, async (req, res, next) => {
 router.post('/:id/approve', authenticate, async (req, res, next) => {
   try {
     const pb = getPocketBase();
+    const { issuing_ca_id } = req.body;
     
     // Get existing request
     const existingRequest = await pb.collection('certificate_requests').getOne(req.params.id);
@@ -215,9 +216,16 @@ router.post('/:id/approve', authenticate, async (req, res, next) => {
       });
     }
     
+    const updateData = { status: REQUEST_STATUS.APPROVED };
+    
+    // Set preferred issuing CA if provided
+    if (issuing_ca_id) {
+      updateData.issuing_ca_id = issuing_ca_id;
+    }
+    
     const updatedRequest = await pb.collection('certificate_requests').update(
       req.params.id,
-      { status: REQUEST_STATUS.APPROVED }
+      updateData
     );
     
     // Log audit
@@ -225,7 +233,10 @@ router.post('/:id/approve', authenticate, async (req, res, next) => {
       updatedRequest.id,
       req.user.id,
       req.ip,
-      { common_name: updatedRequest.common_name }
+      {
+        common_name: updatedRequest.common_name,
+        issuing_ca_id: issuing_ca_id || 'root'
+      }
     );
     
     res.json({

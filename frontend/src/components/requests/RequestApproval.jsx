@@ -16,6 +16,7 @@ import { CheckCircle, Cancel } from '@mui/icons-material';
 import StatusChip from '../common/StatusChip';
 import DateDisplay from '../common/DateDisplay';
 import PassphraseDialog from '../ca/PassphraseDialog';
+import IntermediateCASelector from '../ca/IntermediateCASelector';
 import api from '../../services/api';
 
 const RequestApproval = ({ request, open, onClose, onUpdate }) => {
@@ -25,6 +26,8 @@ const RequestApproval = ({ request, open, onClose, onUpdate }) => {
   const [error, setError] = useState(null);
   const [passphraseDialogOpen, setPassphraseDialogOpen] = useState(false);
   const [passphraseError, setPassphraseError] = useState(null);
+  const [issuingCaId, setIssuingCaId] = useState('root');
+  const [icaPassphrase, setIcaPassphrase] = useState('');
 
   if (!request) return null;
 
@@ -33,7 +36,11 @@ const RequestApproval = ({ request, open, onClose, onUpdate }) => {
     setError(null);
 
     try {
-      await api.post(`/requests/${request.id}/approve`, { notes });
+      const body = { notes };
+      if (issuingCaId && issuingCaId !== 'root') {
+        body.issuing_ca_id = issuingCaId;
+      }
+      await api.post(`/requests/${request.id}/approve`, body);
       onUpdate?.();
       onClose();
     } catch (err) {
@@ -68,8 +75,14 @@ const RequestApproval = ({ request, open, onClose, onUpdate }) => {
     setPassphraseError(null);
 
     try {
-      await api.post(`/certificates/issue/${request.id}`, { passphrase });
+      const body = { passphrase };
+      if (issuingCaId && issuingCaId !== 'root') {
+        body.issuing_ca_id = issuingCaId;
+        body.ica_passphrase = icaPassphrase;
+      }
+      await api.post(`/certificates/issue/${request.id}`, body);
       setPassphraseDialogOpen(false);
+      setIcaPassphrase('');
       onUpdate?.();
       onClose();
     } catch (err) {
@@ -206,6 +219,31 @@ const RequestApproval = ({ request, open, onClose, onUpdate }) => {
               </Grid>
             )}
 
+            {/* Signing CA Selector */}
+            {(canApprove || canIssue) && (
+              <>
+                <Grid size={12}>
+                  <Divider sx={{ my: 1 }} />
+                </Grid>
+                <Grid size={12}>
+                  <Typography variant="h6" gutterBottom>
+                    Signing Authority
+                  </Typography>
+                </Grid>
+                <Grid size={12}>
+                  <IntermediateCASelector
+                    value={issuingCaId}
+                    onChange={setIssuingCaId}
+                    showPassphrase={canIssue}
+                    passphrase={icaPassphrase}
+                    onPassphraseChange={setIcaPassphrase}
+                    disabled={loading}
+                    helperText="Select which CA should sign this certificate"
+                  />
+                </Grid>
+              </>
+            )}
+
             {(canApprove || canIssue) && (
               <Grid size={12}>
                 <TextField
@@ -270,7 +308,11 @@ const RequestApproval = ({ request, open, onClose, onUpdate }) => {
         loading={loading}
         error={passphraseError}
         title="Issue Certificate"
-        message="Enter the CA passphrase to issue this certificate."
+        message={
+          issuingCaId && issuingCaId !== 'root'
+            ? 'Enter the Root CA passphrase to issue this certificate via the selected intermediate CA.'
+            : 'Enter the CA passphrase to issue this certificate.'
+        }
       />
     </>
   );

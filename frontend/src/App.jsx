@@ -10,6 +10,7 @@ import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Certificates from './pages/Certificates';
 import Requests from './pages/Requests';
+import IntermediateCAs from './pages/IntermediateCAs';
 import Reports from './pages/Reports';
 import Audit from './pages/Audit';
 import Settings from './pages/Settings';
@@ -57,6 +58,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Requests />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/intermediate-cas"
+              element={
+                <ProtectedRoute>
+                  <IntermediateCAs />
                 </ProtectedRoute>
               }
             />
